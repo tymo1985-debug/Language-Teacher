@@ -1,104 +1,56 @@
-import { startRouter } from "./router.js";
-import { getState, setState, subscribe, updateSettings } from "./state.js";
-import { openDatabase, getSetting, setSetting } from "../storage/db.js";
-import { renderHeader } from "../ui/components/app-header.js";
-import { renderBottomNav } from "../ui/components/bottom-nav.js";
-import { renderToday } from "../ui/screens/today.js";
-import { renderPractice } from "../ui/screens/practice.js";
-import { renderWords } from "../ui/screens/words.js";
-import { renderProgress } from "../ui/screens/progress.js";
-import { renderSettings } from "../ui/screens/settings.js";
+import {startRouter} from "./router.js";
+import {getState,setState,subscribe,updateSettings} from "./state.js";
+import {ensureLocalUser,getRecord,getSetting,openDatabase,putRecord,setSetting} from "../storage/db.js";
+import {DEFAULT_USER_ID,STORES} from "../storage/schema.js";
+import {createLanguageProfile,listLanguageProfiles,removeLanguageProfile} from "../language/profile-engine.js";
+import {SELF_ASSESSMENT} from "../language/language-catalog.js";
+import {renderHeader} from "../ui/components/app-header.js";
+import {renderBottomNav} from "../ui/components/bottom-nav.js";
+import {renderLanguageOnboarding} from "../ui/components/language-onboarding.js";
+import {renderToday} from "../ui/screens/today.js";
+import {renderPractice} from "../ui/screens/practice.js";
+import {renderWords} from "../ui/screens/words.js";
+import {renderProgress} from "../ui/screens/progress.js";
+import {renderSettings} from "../ui/screens/settings.js";
 
-const app = document.querySelector("#app");
+const app=document.querySelector("#app"),screens={today:renderToday,practice:renderPractice,words:renderWords,progress:renderProgress,settings:renderSettings};
+function render(state){const screen=screens[state.route]??renderToday;app.innerHTML=`${renderHeader(state)}<main class="app-main">${screen(state)}</main>${renderBottomNav(state.route)}${renderLanguageOnboarding(state)}`;bind();}
+const openModal=()=>setState({onboardingOpen:true}),closeModal=()=>setState({onboardingOpen:false});
 
-const screens = {
-  today: renderToday,
-  practice: renderPractice,
-  words: renderWords,
-  progress: renderProgress,
-  settings: renderSettings
-};
-
-function render(state) {
-  const screen = screens[state.route] ?? renderToday;
-
-  app.innerHTML = `
-    ${renderHeader(state)}
-    <main class="app-main" id="main-content">
-      ${screen(state)}
-    </main>
-    ${renderBottomNav(state.route)}
-  `;
-
-  bindUi();
+async function setActiveLanguage(languageId){
+ const user=await getRecord(STORES.users,DEFAULT_USER_ID); if(!user)return;
+ const next={...user,activeLanguageId:languageId,updatedAt:new Date().toISOString()};
+ await putRecord(STORES.users,next);setState({user:next,activeLanguageId:languageId});
 }
-
-function bindUi() {
-  document.querySelectorAll("[data-route]").forEach((element) => {
-    element.addEventListener("click", () => {
-      const route = element.dataset.route;
-      window.location.hash = `#/${route}`;
-    });
-  });
-
-  const languageSelect = document.querySelector("#interface-language");
-  if (languageSelect) {
-    languageSelect.addEventListener("change", async (event) => {
-      const interfaceLanguage = event.target.value;
-      updateSettings({ interfaceLanguage });
-      await setSetting("interfaceLanguage", interfaceLanguage);
-    });
-  }
-
-  const reduceMotion = document.querySelector("#reduce-motion");
-  if (reduceMotion) {
-    reduceMotion.addEventListener("change", async (event) => {
-      const value = event.target.checked;
-      updateSettings({ reduceMotion: value });
-      document.documentElement.dataset.reduceMotion = value ? "true" : "false";
-      await setSetting("reduceMotion", value);
-    });
-  }
+async function refreshProfiles(preferred=null){
+ const profiles=await listLanguageProfiles(),state=getState();
+ let active=preferred||state.activeLanguageId;
+ if(!profiles.some(p=>p.languageId===active))active=profiles[0]?.languageId??null;
+ if(active)await setActiveLanguage(active);else{const user=await getRecord(STORES.users,DEFAULT_USER_ID);if(user?.activeLanguageId){const next={...user,activeLanguageId:null,updatedAt:new Date().toISOString()};await putRecord(STORES.users,next);setState({user:next,activeLanguageId:null});}}
+ setState({languageProfiles:profiles,activeLanguageId:active});
 }
-
-async function bootstrapStorage() {
-  try {
-    await openDatabase();
-    const interfaceLanguage = await getSetting("interfaceLanguage");
-    const reduceMotion = await getSetting("reduceMotion");
-
-    const settings = {
-      ...getState().settings,
-      ...(interfaceLanguage ? { interfaceLanguage } : {}),
-      ...(typeof reduceMotion === "boolean" ? { reduceMotion } : {})
-    };
-
-    document.documentElement.dataset.reduceMotion = settings.reduceMotion ? "true" : "false";
-    setState({ settings, storageReady: true });
-  } catch (error) {
-    console.error("IndexedDB initialization failed:", error);
-    setState({ storageReady: false });
-  }
+function bind(){
+ document.querySelectorAll("[data-route]").forEach(el=>el.onclick=()=>location.hash=`#/${el.dataset.route}`);
+ ["add-language-top","add-language-hero","add-language-inline","add-language-settings"].forEach(id=>{const el=document.querySelector("#"+id);if(el)el.onclick=openModal;});
+ const switcher=document.querySelector("#language-switcher"); if(switcher)switcher.onclick=()=>{const ps=getState().languageProfiles;if(ps.length<=1)return openModal();const i=ps.findIndex(p=>p.languageId===getState().activeLanguageId);setActiveLanguage(ps[(i+1)%ps.length].languageId);};
+ document.querySelectorAll("[data-language-select]").forEach(el=>el.onclick=()=>setActiveLanguage(el.dataset.languageSelect));
+ document.querySelectorAll("[data-language-remove]").forEach(el=>el.onclick=async()=>{const id=el.dataset.languageRemove,p=getState().languageProfiles.find(x=>x.languageId===id);if(confirm(`Удалить профиль ${p?.name??id}?`)){await removeLanguageProfile(id);await refreshProfiles();}});
+ const close=document.querySelector("#close-language-modal"),cancel=document.querySelector("#cancel-language-modal");if(close)close.onclick=closeModal;if(cancel)cancel.onclick=closeModal;
+ const modal=document.querySelector("#language-modal");if(modal)modal.onclick=e=>{if(e.target.id==="language-modal")closeModal();};
+ const form=document.querySelector("#language-form");if(form)form.onsubmit=async e=>{e.preventDefault();const fd=new FormData(form),languageId=String(fd.get("languageId")||"");if(!languageId)return;const goals=fd.getAll("goals").map(String),assessmentId=String(fd.get("assessment")||"starter"),sa=SELF_ASSESSMENT.find(x=>x.id===assessmentId)??SELF_ASSESSMENT[0];await createLanguageProfile({languageId,goals,selfAssessment:sa});closeModal();await refreshProfiles(languageId);};
+ const il=document.querySelector("#interface-language");if(il)il.onchange=async e=>{updateSettings({interfaceLanguage:e.target.value});await setSetting("interfaceLanguage",e.target.value);};
+ const rm=document.querySelector("#reduce-motion");if(rm)rm.onchange=async e=>{updateSettings({reduceMotion:e.target.checked});document.documentElement.dataset.reduceMotion=e.target.checked?"true":"false";await setSetting("reduceMotion",e.target.checked);};
 }
-
-function bindConnectivity() {
-  window.addEventListener("online", () => setState({ online: true }));
-  window.addEventListener("offline", () => setState({ online: false }));
+async function bootstrap(){
+ try{
+  await openDatabase();const user=await ensureLocalUser(),profiles=await listLanguageProfiles(),interfaceLanguage=await getSetting("interfaceLanguage"),reduceMotion=await getSetting("reduceMotion");
+  let active=user.activeLanguageId;if(!profiles.some(p=>p.languageId===active))active=profiles[0]?.languageId??null;
+  const settings={...getState().settings,...(interfaceLanguage?{interfaceLanguage}:{}),...(typeof reduceMotion==="boolean"?{reduceMotion}:{})};
+  document.documentElement.dataset.reduceMotion=settings.reduceMotion?"true":"false";
+  setState({settings,storageReady:true,user,languageProfiles:profiles,activeLanguageId:active,onboardingOpen:profiles.length===0});
+ }catch(error){console.error(error);setState({storageReady:false});}
 }
-
-async function registerServiceWorker() {
-  if (!("serviceWorker" in navigator)) return;
-  try {
-    await navigator.serviceWorker.register("./sw.js");
-  } catch (error) {
-    console.error("Service worker registration failed:", error);
-  }
-}
-
-subscribe(render);
-render(getState());
-
-startRouter((route) => setState({ route }));
-bindConnectivity();
-bootstrapStorage();
-registerServiceWorker();
+subscribe(render);render(getState());startRouter(route=>setState({route}));
+addEventListener("online",()=>setState({online:true}));addEventListener("offline",()=>setState({online:false}));
+bootstrap();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(console.error);

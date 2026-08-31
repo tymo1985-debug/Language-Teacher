@@ -1,50 +1,7 @@
-export function renderToday(state) {
-  return `
-    <section class="stack-lg">
-      <article class="hero-card">
-        <div>
-          <p class="eyebrow">FOUNDATION PREVIEW</p>
-          <h2>Начнём говорить, а не набирать очки.</h2>
-          <p class="muted">
-            Это базовый экран Language Teacher. Учебная логика появится в следующих фазах,
-            а фундамент PWA уже отделён от неё.
-          </p>
-        </div>
-        <button class="primary-button" type="button" data-route="practice">
-          Открыть практику
-        </button>
-      </article>
-
-      <section>
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">БЫСТРЫЙ ДОСТУП</p>
-            <h2>Основа интерфейса</h2>
-          </div>
-        </div>
-
-        <div class="card-grid">
-          ${quickCard("Практика", "Будущие speaking, listening и review.", "practice")}
-          ${quickCard("Слова", "Learning Items и полезные языковые chunks.", "words")}
-          ${quickCard("Прогресс", "Реальные навыки вместо XP.", "progress")}
-          ${quickCard("Настройки", "Локальные параметры сохраняются в IndexedDB.", "settings")}
-        </div>
-      </section>
-
-      <aside class="info-strip">
-        <strong>${state.storageReady ? "Локальное хранилище готово" : "Локальное хранилище инициализируется"}</strong>
-        <span>${state.online ? "Сеть доступна." : "Приложение работает без сети."}</span>
-      </aside>
-    </section>
-  `;
+export function renderToday(state){
+ if(!state.languageProfiles.length)return `<section class="stack-lg"><article class="hero-card"><div><p class="eyebrow">WELCOME</p><h2>Выберите первый язык.</h2><p class="muted">Для каждого языка Language Teacher хранит отдельные цели, навыки и будущий прогресс.</p></div><button class="primary-button" id="add-language-hero">+ Добавить язык</button></article></section>`;
+ const active=state.languageProfiles.find(x=>x.languageId===state.activeLanguageId)??state.languageProfiles[0];
+ return `<section class="stack-lg"><article class="hero-card"><div><p class="eyebrow">${active.flag} ${active.name.toUpperCase()}</p><h2>Профиль языка готов.</h2><p class="muted">Цели и начальная самооценка сохранены локально. Следующие фазы подключат Learning Items, SRS и Session Engine.</p></div><button class="primary-button" data-route="practice">Открыть практику</button></article>
+ <section><div class="section-heading"><div><p class="eyebrow">ВАШИ ЯЗЫКИ</p><h2>Отдельный прогресс для каждого</h2></div><button class="secondary-button compact" id="add-language-inline">+ Язык</button></div><div class="language-profile-grid">${state.languageProfiles.map(p=>card(p,state.activeLanguageId)).join("")}</div></section></section>`;
 }
-
-function quickCard(title, text, route) {
-  return `
-    <button class="feature-card" type="button" data-route="${route}">
-      <span class="feature-card-title">${title}</span>
-      <span class="feature-card-text">${text}</span>
-      <span class="feature-card-arrow" aria-hidden="true">→</span>
-    </button>
-  `;
-}
+function card(p,activeId){const vals=Object.values(p.skills),avg=Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*100),active=p.languageId===activeId;return `<button class="language-profile-card ${active?"is-active":""}" data-language-select="${p.languageId}"><div class="language-profile-top"><span class="language-flag">${p.flag}</span>${active?'<span class="pill active-pill">Активный</span>':""}</div><strong>${p.name}</strong><span class="muted">${p.label}</span><div class="profile-summary"><span>${p.goals.length} целей</span><span>Старт ${avg}%</span></div></button>`;}

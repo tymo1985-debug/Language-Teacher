@@ -1,66 +1,41 @@
-import { DB_NAME, DB_VERSION, STORES } from "./schema.js";
-
-let dbPromise = null;
-
-export function openDatabase() {
-  if (dbPromise) return dbPromise;
-
-  dbPromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onupgradeneeded = () => {
-      const db = request.result;
-
-      Object.values(STORES).forEach((storeName) => {
-        if (!db.objectStoreNames.contains(storeName)) {
-          db.createObjectStore(storeName, { keyPath: "id" });
-        }
-      });
+import {DB_NAME,DB_VERSION,STORES,DEFAULT_USER_ID} from "./schema.js";
+let dbPromise=null;
+export function openDatabase(){
+  if(dbPromise)return dbPromise;
+  dbPromise=new Promise((resolve,reject)=>{
+    const request=indexedDB.open(DB_NAME,DB_VERSION);
+    request.onupgradeneeded=()=>{
+      const db=request.result;
+      Object.values(STORES).forEach(name=>{if(!db.objectStoreNames.contains(name))db.createObjectStore(name,{keyPath:"id"});});
     };
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-    request.onblocked = () => console.warn("IndexedDB upgrade is blocked by another tab.");
+    request.onsuccess=()=>resolve(request.result);
+    request.onerror=()=>reject(request.error);
+    request.onblocked=()=>console.warn("IndexedDB upgrade blocked.");
   });
-
   return dbPromise;
 }
-
-async function transaction(storeName, mode, action) {
-  const db = await openDatabase();
-
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, mode);
-    const store = tx.objectStore(storeName);
-    const request = action(store);
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-    tx.onerror = () => reject(tx.error);
+async function tx(storeName,mode,action){
+  const db=await openDatabase();
+  return new Promise((resolve,reject)=>{
+    const transaction=db.transaction(storeName,mode);
+    const request=action(transaction.objectStore(storeName));
+    request.onsuccess=()=>resolve(request.result);
+    request.onerror=()=>reject(request.error);
+    transaction.onerror=()=>reject(transaction.error);
   });
 }
-
-export async function getSetting(key) {
-  const result = await transaction(STORES.settings, "readonly", (store) => store.get(key));
-  return result?.value;
-}
-
-export async function setSetting(key, value) {
-  return transaction(STORES.settings, "readwrite", (store) =>
-    store.put({ id: key, value, updatedAt: new Date().toISOString() })
-  );
-}
-
-export async function putRecord(storeName, record) {
-  if (!Object.values(STORES).includes(storeName)) {
-    throw new Error(`Unknown store: ${storeName}`);
-  }
-  return transaction(storeName, "readwrite", (store) => store.put(record));
-}
-
-export async function getRecord(storeName, id) {
-  if (!Object.values(STORES).includes(storeName)) {
-    throw new Error(`Unknown store: ${storeName}`);
-  }
-  return transaction(storeName, "readonly", (store) => store.get(id));
+function check(name){if(!Object.values(STORES).includes(name))throw new Error(`Unknown store: ${name}`);}
+export async function getSetting(key){const r=await tx(STORES.settings,"readonly",s=>s.get(key));return r?.value;}
+export async function setSetting(key,value){return tx(STORES.settings,"readwrite",s=>s.put({id:key,value,updatedAt:new Date().toISOString()}));}
+export async function putRecord(name,record){check(name);return tx(name,"readwrite",s=>s.put(record));}
+export async function getRecord(name,id){check(name);return tx(name,"readonly",s=>s.get(id));}
+export async function getAllRecords(name){check(name);return tx(name,"readonly",s=>s.getAll());}
+export async function deleteRecord(name,id){check(name);return tx(name,"readwrite",s=>s.delete(id));}
+export async function ensureLocalUser(){
+  const current=await getRecord(STORES.users,DEFAULT_USER_ID);
+  if(current)return current;
+  const now=new Date().toISOString();
+  const user={id:DEFAULT_USER_ID,displayName:"",interfaceLanguage:"ru",activeLanguageId:null,createdAt:now,updatedAt:now};
+  await putRecord(STORES.users,user);
+  return user;
 }

@@ -62,3 +62,6 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+@media(min-width:720px){.language-profile-grid,.choice-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.modal-backdrop{place-items:center}.modal-card{border-radius:var(--radius-lg)}}
+@media(max-width:620px){.status-text{display:none}.language-chip span:nth-child(2){display:none}}
