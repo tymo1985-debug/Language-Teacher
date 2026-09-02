@@ -1,11 +1,11 @@
 {
-  "latestVersion": "1.5.0",
-  "phase": "Phase 12.4 · Guided Practice UX",
+  "latestVersion": "1.6.0",
+  "phase": "Phase 13 · Adaptive AI Practice",
   "publishedAt": "2026-09-02",
   "changes": [
-    "Practice организован по намерениям: разговор, произношение, повторение и Real Life.",
-    "Today Session выделен как рекомендованное действие.",
-    "AI Teacher перенесён в дополнительные инструменты.",
-    "Технические термины убраны из основного выбора практики."
+    "Conversation получил отдельную модель поведения настоящего собеседника.",
+    "Real Life ориентируется на одну естественную фразу для немедленного использования.",
+    "Practice, Conversation и Real Life используют разные педагогические инструкции.",
+    "Добавлены тесты mode-specific AI instructions."
   ]
 }

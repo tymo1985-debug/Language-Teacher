@@ -1,5 +1,5 @@
 import {validateTeacherResponse} from "../src/ai/response-contract.js";
-import {TEACHER_INSTRUCTIONS,TEACHER_RESPONSE_SCHEMA} from "./teacher-contract.mjs";
+import {buildTeacherInstructions,TEACHER_RESPONSE_SCHEMA} from "./teacher-contract.mjs";
 
 const text=(value,max=1200)=>String(value??"").slice(0,max);
 const list=(value,max)=>Array.isArray(value)?value.slice(0,max):[];
@@ -49,7 +49,7 @@ export function sanitizeTeacherContext(context){
 export function buildOpenAIRequest({context,model}){
   return {
     model,
-    instructions:TEACHER_INSTRUCTIONS,
+    instructions:buildTeacherInstructions(context?.mode),
     input:JSON.stringify(sanitizeTeacherContext(context)),
     text:{
       format:{
