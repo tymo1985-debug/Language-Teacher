@@ -1,11 +1,11 @@
 {
-  "latestVersion": "1.2.0",
-  "phase": "Phase 12.1 · Today Intelligence",
+  "latestVersion": "1.3.0",
+  "phase": "Phase 12.2 · Learning Library",
   "publishedAt": "2026-09-02",
   "changes": [
-    "Today выбирает одно главное действие на основе текущего занятия и learning data.",
-    "Появилось краткое объяснение причин сегодняшнего фокуса.",
-    "После завершения занятия предлагается следующий полезный шаг.",
-    "Дополнительные рекомендации ограничены двумя действиями."
+    "Learning Library показывает реальные Learning Items вместо одних счётчиков.",
+    "Добавлены Mistake Memory и сохранённые Real Life ситуации.",
+    "Видна память по recognition, production, listening и pronunciation.",
+    "На Today появилась ручная проверка обновлений."
   ]
 }
