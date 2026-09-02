@@ -1,6 +1,7 @@
 import {BACKUP_FORMAT,BACKUP_VERSION} from "./backup.js";
 import {STORES} from "./schema.js";
 import {clearStore,putRecord} from "./db.js";
+import {validatePortableBackup} from "./backup-validation.js";
 
 const RESTORE_STORES=[
   STORES.users,
@@ -16,31 +17,11 @@ const RESTORE_STORES=[
 ];
 
 export function validateBackup(value){
-  const errors=[];
-
-  if(!value||typeof value!=="object"||Array.isArray(value)){
-    return {valid:false,errors:["Backup должен быть JSON-объектом."]};
-  }
-
-  if(value.format!==BACKUP_FORMAT){
-    errors.push("Неверный формат backup.");
-  }
-
-  if(value.backupVersion!==BACKUP_VERSION){
-    errors.push(`Неподдерживаемая версия backup: ${value.backupVersion??"unknown"}.`);
-  }
-
-  if(!value.data||typeof value.data!=="object"){
-    errors.push("В backup отсутствует раздел data.");
-  }else{
-    for(const store of RESTORE_STORES){
-      if(value.data[store]!==undefined&&!Array.isArray(value.data[store])){
-        errors.push(`${store} должен быть массивом.`);
-      }
-    }
-  }
-
-  return {valid:errors.length===0,errors};
+  return validatePortableBackup(value,{
+    format:BACKUP_FORMAT,
+    version:BACKUP_VERSION,
+    stores:RESTORE_STORES
+  });
 }
 
 export async function restoreBackup(value){
@@ -51,7 +32,8 @@ export async function restoreBackup(value){
     throw error;
   }
 
-  // Clear only stores that belong to the portable backup contract.
+  // Validation is complete before the first destructive write.
+  // A malformed record can no longer wipe the current local data midway through restore.
   for(const store of RESTORE_STORES){
     await clearStore(store);
   }
@@ -59,9 +41,6 @@ export async function restoreBackup(value){
   for(const store of RESTORE_STORES){
     const records=value.data?.[store]??[];
     for(const record of records){
-      if(!record||typeof record!=="object"||!record.id){
-        throw new Error(`Некорректная запись в ${store}.`);
-      }
       await putRecord(store,record);
     }
   }

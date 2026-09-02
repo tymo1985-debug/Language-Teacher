@@ -1,10 +1,11 @@
 {
-  "latestVersion": "1.13.2",
-  "phase": "Phase 19.2 · Release Gate Test Sync",
+  "latestVersion": "1.14.0",
+  "phase": "Final Release · Functional Audit",
   "publishedAt": "2026-09-02",
   "changes": [
-    "Синхронизирован устаревший tests/i18n.test.mjs с текущим i18n API.",
-    "Удалены ожидания старых nav_today/nav_settings ключей.",
-    "Проверяется актуальный ru/en/uk fallback без изменения runtime-функциональности."
+    "Исправлен финальный regression полного ru/en/uk UI: восстановлены foundation translation keys.",
+    "Добавлен automated translation contract для core UI.",
+    "Restore теперь отвергает malformed backup до очистки локальных stores.",
+    "Добавлен итоговый audit report и release safety tests."
   ]
 }
