@@ -1,4 +1,4 @@
-const CACHE_NAME="language-teacher-shell-v21";
+const CACHE_NAME="language-teacher-shell-v22";
 const APP_SHELL=[
   "./","./index.html","./manifest.webmanifest","./update.json","./deployment-config.js",
   "./src/app/app.js","./src/app/router.js","./src/app/state.js","./src/app/version.js",

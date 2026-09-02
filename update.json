@@ -1,11 +1,11 @@
 {
-  "latestVersion": "1.9.0",
-  "phase": "Phase 16 · Grammar Focus",
+  "latestVersion": "1.10.0",
+  "phase": "Phase 17 · Release Gates",
   "publishedAt": "2026-09-02",
   "changes": [
-    "В Practice появился Grammar Focus.",
-    "Фокус выбирается из реальных Mistake Memory по важности и повторяемости.",
-    "AI Teacher показывает одну конструкцию за раз вместо общего учебника грамматики.",
-    "Добавлены тесты Grammar Focus."
+    "Добавлен npm run gate для единой release-проверки.",
+    "Gate проверяет согласованность version.js, package.json, update.json и Service Worker.",
+    "Все JS/MJS проходят node --check, затем запускается полный node:test.",
+    "Добавлен GitHub Actions workflow для автоматической проверки main и pull requests."
   ]
 }

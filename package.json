@@ -1,11 +1,12 @@
 {
   "name": "language-teacher",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node server/server.mjs",
-    "test": "node --test"
+    "test": "node --test",
+    "gate": "node scripts/release-gate.mjs"
   },
   "engines": {
     "node": ">=18"
