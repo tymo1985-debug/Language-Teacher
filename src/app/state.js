@@ -43,39 +43,51 @@ const state={
 
 export const getState=()=>structuredClone(state);
 
+function notify(){
+  listeners.forEach(fn=>fn(getState()));
+}
+
+function isManualDraftInput(fieldId){
+  return typeof document!=="undefined"&&document.activeElement?.id===fieldId;
+}
+
 export function setState(patch){
   Object.assign(state,patch);
-  listeners.forEach(fn=>fn(getState()));
+  notify();
 }
 
 export function updateSettings(patch){
   state.settings={...state.settings,...patch};
-  listeners.forEach(fn=>fn(getState()));
+  notify();
 }
 
 export function updateSpeech(patch){
   state.speech={...state.speech,...patch};
-  listeners.forEach(fn=>fn(getState()));
+  if(Object.hasOwn(patch,"referenceText")&&isManualDraftInput("speech-reference-text"))return;
+  notify();
 }
 
 export function updateAI(patch){
   state.ai={...state.ai,...patch};
-  listeners.forEach(fn=>fn(getState()));
+  if(Object.hasOwn(patch,"input")&&isManualDraftInput("teacher-input"))return;
+  notify();
 }
 
 export function updateConversation(patch){
   state.conversation={...state.conversation,...patch};
-  listeners.forEach(fn=>fn(getState()));
+  if(Object.hasOwn(patch,"input")&&isManualDraftInput("conversation-input"))return;
+  notify();
 }
 
 export function updateRealLife(patch){
   state.realLife={...state.realLife,...patch};
-  listeners.forEach(fn=>fn(getState()));
+  if(Object.hasOwn(patch,"input")&&isManualDraftInput("real-life-input"))return;
+  notify();
 }
 
 export function updateOperation(message,kind="info"){
   state.operation={message,kind};
-  listeners.forEach(fn=>fn(getState()));
+  notify();
 }
 
 export function subscribe(fn){
