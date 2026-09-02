@@ -3,6 +3,8 @@ import {APP_VERSION,APP_PHASE,APP_BUILD_DATE,DB_SCHEMA_VERSION} from "../../app/
 export function renderSettings(state){
   const caps=state.speech?.capabilities??{};
   const ai=state.ai??{};
+  const cloud=ai.providers?.find(provider=>provider.id==="proxy");
+  const cloudAvailable=Boolean(cloud?.capabilities?.available);
 
   return `<section class="stack-lg">
     <div class="page-intro">
@@ -30,9 +32,7 @@ export function renderSettings(state){
       <div class="section-heading">
         <div><p class="eyebrow">BACKUP</p><h3>Экспорт и восстановление</h3></div>
       </div>
-      <p class="muted">
-        Backup содержит основные локальные учебные данные. Аудиозаписи в MVP backup не включаются.
-      </p>
+      <p class="muted">Backup содержит основные локальные учебные данные. Аудиозаписи в MVP backup не включаются.</p>
       <div class="backup-actions">
         <button type="button" class="secondary-button" id="backup-export">Экспортировать JSON</button>
         <label class="secondary-button backup-file-label">
@@ -48,9 +48,7 @@ export function renderSettings(state){
         <div><p class="eyebrow">RELEASE CHECK</p><h3>Готовность устройства</h3></div>
         <button type="button" class="secondary-button compact" id="release-check-run">Проверить</button>
       </div>
-      ${state.releaseCheck?renderReleaseCheck(state.releaseCheck):`
-        <p class="muted">Проверяет IndexedDB, Service Worker, secure context и доступные fallback-механизмы.</p>
-      `}
+      ${state.releaseCheck?renderReleaseCheck(state.releaseCheck):`<p class="muted">Проверяет IndexedDB, Service Worker, secure context и доступные fallback-механизмы.</p>`}
     </article>
 
     <article class="info-card">
@@ -77,8 +75,10 @@ export function renderSettings(state){
       <label class="field-label" for="ai-provider">Режим AI</label>
       <select id="ai-provider" class="select-control">
         ${(ai.providers??[]).map(provider=>`
-          <option value="${escapeHtml(provider.id)}" ${provider.id===ai.providerId?"selected":""}>
-            ${escapeHtml(provider.label)}
+          <option value="${escapeHtml(provider.id)}"
+            ${provider.id===ai.providerId?"selected":""}
+            ${provider.capabilities?.available===false?"disabled":""}>
+            ${escapeHtml(provider.label)}${provider.capabilities?.available===false?" · backend не подключён":""}
           </option>
         `).join("")}
       </select>
@@ -87,6 +87,12 @@ export function renderSettings(state){
           ?"Запросы отправляются вашему backend proxy. Он удаляет локальные идентификаторы перед обращением к модели."
           :"Данные остаются на устройстве. Demo проверяет механику, но не является языковой моделью."}
       </p>
+      ${!cloudAvailable?`
+        <div class="ai-deployment-note">
+          <strong>Cloud AI сейчас недоступен в этой публикации</strong>
+          <small>Статический GitHub Pages не выполняет Node backend. Local mode продолжает работать; Secure cloud AI станет доступен после подключения отдельного proxy.</small>
+        </div>
+      `:""}
       <small class="muted">API-ключ хранится только на сервере и никогда не попадает в PWA.</small>
     </article>
 
@@ -130,18 +136,9 @@ function renderReleaseCheck(result){
     </div>
   </div>`;
 }
-
 function speechStatus(label,available){
-  return `<div class="speech-setting-row">
-    <span>${available?"✓":"—"}</span>
-    <strong>${label}</strong>
-    <small>${available?"Доступно":"Недоступно"}</small>
-  </div>`;
+  return `<div class="speech-setting-row"><span>${available?"✓":"—"}</span><strong>${label}</strong><small>${available?"Доступно":"Недоступно"}</small></div>`;
 }
-
 function escapeHtml(value=""){
-  return String(value??"")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;");
+  return String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
 }

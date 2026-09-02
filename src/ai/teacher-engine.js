@@ -18,8 +18,10 @@ export function listAIProviders(){
 }
 
 export function setAIProvider(providerId){
-  if(!providers.has(providerId)){
-    throw new Error(`Unknown AI provider: ${providerId}`);
+  const provider=providers.get(providerId);
+  if(!provider)throw new Error(`Unknown AI provider: ${providerId}`);
+  if(provider.getCapabilities().available===false){
+    throw new Error("Secure cloud AI backend не настроен для этой публикации.");
   }
   activeProviderId=providerId;
 }

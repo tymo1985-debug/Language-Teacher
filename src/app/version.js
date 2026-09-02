@@ -1,11 +1,11 @@
-export const APP_VERSION = "1.6.0";
-export const APP_PHASE = "Phase 13 · Adaptive AI Practice";
+export const APP_VERSION = "1.6.1";
+export const APP_PHASE = "Phase 13.1 · Cloud AI Deployment Safety";
 export const APP_BUILD_DATE = "2026-09-02";
 export const DB_SCHEMA_VERSION = 3;
 export const RELEASE_NOTES = [
-  "Secure cloud AI теперь получает отдельные педагогические инструкции для Conversation, Real Life и обычной практики.",
-  "Conversation ведёт себя как собеседник: отвечает на смысл, не подсказывает следующий ответ и исправляет только существенное.",
-  "Real Life теперь просит одну основную естественную фразу вместо списка учебниковых альтернатив.",
-  "Контекст слабых выражений, повторяющихся ошибок и личных ситуаций используется в облачном AI более целенаправленно.",
-  "Добавлены автоматические тесты выбора mode-specific AI instructions."
+  "Secure cloud AI больше не предлагается как доступный режим, если backend proxy не подключён.",
+  "GitHub Pages и другие статические публикации автоматически остаются в Local mode вместо ошибки 405.",
+  "Добавлен публичный deployment-config.js для адреса внешнего AI proxy без хранения секретов в PWA.",
+  "Backend получил health endpoint и безопасную CORS-настройку для отдельного cloud deployment.",
+  "Ошибка 404/405 AI proxy теперь объясняется как отсутствие backend, а не как неизвестная ошибка AI."
 ];

@@ -1,7 +1,8 @@
 import {AIProvider} from "./provider.js";
+import {getConfiguredAIProxyEndpoint} from "./proxy-config.js";
 
 export class ProxyAIProvider extends AIProvider {
-  constructor({endpoint="/api/teacher",timeoutMs=30000}={}){
+  constructor({endpoint=getConfiguredAIProxyEndpoint(),timeoutMs=30000}={}){
     super({id:"proxy",label:"Secure cloud AI"});
     this.endpoint=endpoint;
     this.timeoutMs=timeoutMs;
@@ -12,14 +13,16 @@ export class ProxyAIProvider extends AIProvider {
       available:Boolean(this.endpoint),
       remote:true,
       structuredOutput:true,
-      requiresNetwork:true
+      requiresNetwork:true,
+      endpointConfigured:Boolean(this.endpoint)
     };
   }
 
   async generateTeacherResponse(context){
-    if(!navigator.onLine){
-      throw new Error("AI proxy requires a network connection.");
+    if(!this.endpoint){
+      throw new Error("Secure cloud AI не подключён к backend. Используйте Local mode или настройте AI proxy.");
     }
+    if(!navigator.onLine)throw new Error("AI proxy requires a network connection.");
 
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),this.timeoutMs);
@@ -41,6 +44,9 @@ export class ProxyAIProvider extends AIProvider {
 
     if(!response.ok){
       const errorBody=await response.json().catch(()=>null);
+      if(response.status===404||response.status===405){
+        throw new Error("Secure cloud AI backend не найден для этой публикации. Переключитесь на Local mode.");
+      }
       throw new Error(errorBody?.error??`AI proxy returned ${response.status}.`);
     }
 

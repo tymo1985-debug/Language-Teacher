@@ -1,0 +1,14 @@
+.ai-deployment-note{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  margin:var(--space-4) 0;
+  padding:var(--space-4);
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  background:var(--surface-soft);
+}
+.ai-deployment-note small{
+  color:var(--text-secondary);
+  line-height:1.45;
+}
