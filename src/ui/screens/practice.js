@@ -2,56 +2,116 @@ export function renderPractice(state){
   const due=state.learningSummary?.dueReviews??0;
   const session=state.todaySession;
   const recording=state.speech?.capabilities?.recording;
+  const hasSession=Boolean(session);
+  const sessionRemaining=hasSession
+    ? Math.max(0,(session.blocks?.length??0)-(session.blocks?.filter(block=>block.status==="completed").length??0))
+    : 0;
 
-  return `<section class="stack-lg">
+  return `<section class="stack-lg guided-practice">
     <div class="page-intro">
       <p class="eyebrow">PRACTICE</p>
-      <h2>Выберите короткую практику</h2>
-      <p class="muted">Real Life превращает сегодняшнюю реальную потребность в будущий учебный материал.</p>
+      <h2>Что вы хотите сделать сейчас?</h2>
+      <p class="muted">
+        Выберите намерение, а не внутреннюю функцию приложения.
+        Language Teacher сам направит вас в подходящий режим.
+      </p>
     </div>
 
-    <div class="card-grid">
-      <button class="feature-card real-life-feature" type="button" data-route="real-life">
-        <span class="feature-card-title">Real Life</span>
-        <span class="feature-card-text">Мне нужно это сейчас — получить фразу, произнести и сохранить.</span>
-        <span class="pill">Практика сейчас</span>
-        <span class="feature-card-arrow">→</span>
+    ${hasSession?`
+      <button class="practice-recommended" type="button" data-route="session">
+        <span class="practice-recommended-label">РЕКОМЕНДОВАНО СЕГОДНЯ</span>
+        <span class="practice-recommended-main">
+          <span>
+            <strong>${session.status==="completed"?"Посмотреть сегодняшнее занятие":sessionRemaining<(session.blocks?.length??0)?"Продолжить сегодняшнее занятие":"Начать сегодняшнее занятие"}</strong>
+            <small>${session.status==="completed"
+              ?"Основная практика уже завершена."
+              :`${session.blocks?.length??0} блоков · около ${session.targetDuration??10} минут${sessionRemaining<(session.blocks?.length??0)?` · осталось ${sessionRemaining}`:""}`}</small>
+          </span>
+          <span aria-hidden="true">→</span>
+        </span>
       </button>
+    `:""}
 
-      <button class="feature-card" type="button" data-route="session" ${session?"":"disabled"}>
-        <span class="feature-card-title">Today Session</span>
-        <span class="feature-card-text">Рекомендованное занятие из ваших текущих данных.</span>
-        <span class="pill">${session?`${session.blocks.length} блоков`:"Подготовка"}</span>
-        <span class="feature-card-arrow">→</span>
-      </button>
-
-      <button class="feature-card" type="button" data-route="conversation">
-        <span class="feature-card-title">Conversation</span>
-        <span class="feature-card-text">Многоходовый диалог с исправлениями после вашего ответа.</span>
-        <span class="pill">Multi-turn</span>
-        <span class="feature-card-arrow">→</span>
-      </button>
-
-      <button class="feature-card" type="button" data-route="teacher">
-        <span class="feature-card-title">AI Teacher</span>
-        <span class="feature-card-text">Структурированные упражнения через безопасный provider layer.</span>
-        <span class="pill">Provider layer</span>
-        <span class="feature-card-arrow">→</span>
-      </button>
-
-      <button class="feature-card" type="button" data-route="review">
-        <span class="feature-card-title">Review</span>
-        <span class="feature-card-text">Интервальное повторение по слабейшему навыку памяти.</span>
-        <span class="pill">${due} к повторению</span>
-        <span class="feature-card-arrow">→</span>
-      </button>
-
-      <button class="feature-card" type="button" data-route="speech">
-        <span class="feature-card-title">Speech Lab</span>
-        <span class="feature-card-text">Запишите голос, прослушайте себя и используйте системный эталонный голос.</span>
-        <span class="pill">${recording?"Микрофон поддерживается":"Проверьте устройство"}</span>
-        <span class="feature-card-arrow">→</span>
-      </button>
+    <div class="practice-intent-grid">
+      ${intentCard({
+        route:"conversation",
+        icon:"◌",
+        title:"Поговорить",
+        text:"Живой многоходовый диалог. Сначала отвечаете сами, потом получаете только важные исправления.",
+        meta:"Разговор"
+      })}
+      ${intentCard({
+        route:"speech",
+        icon:"◖",
+        title:"Потренировать произношение",
+        text:"Прослушать эталон, записать себя и сравнить звучание без искусственного псевдо-скоринга.",
+        meta:recording?"Микрофон доступен":"Запись зависит от устройства"
+      })}
+      ${intentCard({
+        route:"review",
+        icon:"↺",
+        title:"Повторить знакомое",
+        text:"Активно вспомнить выражения, которые подошли к повторению, по их слабейшему навыку.",
+        meta:due?`${due} к повторению`:"Срочных повторений нет",
+        quiet:due===0
+      })}
+      ${intentCard({
+        route:"real-life",
+        icon:"◎",
+        title:"Мне нужно это сейчас",
+        text:"Опишите реальную ситуацию и получите естественную фразу, которую можно сразу потренировать и сохранить.",
+        meta:"Real Life",
+        accent:true
+      })}
     </div>
+
+    <section class="practice-tools" aria-labelledby="practice-tools-title">
+      <div class="section-heading guided-practice-heading">
+        <div>
+          <p class="eyebrow">ДОПОЛНИТЕЛЬНЫЕ ИНСТРУМЕНТЫ</p>
+          <h3 id="practice-tools-title">Когда хочется выбрать формат вручную</h3>
+        </div>
+      </div>
+
+      <div class="practice-tool-list">
+        <button class="practice-tool-row" type="button" data-route="teacher">
+          <span>
+            <strong>Сформировать упражнение</strong>
+            <small>AI Teacher · для конкретной темы или конструкции</small>
+          </span>
+          <span aria-hidden="true">→</span>
+        </button>
+        ${!hasSession?`
+          <div class="practice-tool-row is-disabled" aria-disabled="true">
+            <span>
+              <strong>Сегодняшнее занятие</strong>
+              <small>Session Engine ещё подготавливает локальную сессию</small>
+            </span>
+            <span aria-hidden="true">…</span>
+          </div>
+        `:""}
+      </div>
+    </section>
   </section>`;
+}
+
+function intentCard({route,icon,title,text,meta,accent=false,quiet=false}){
+  return `<button class="practice-intent-card ${accent?"is-accent":""} ${quiet?"is-quiet":""}" type="button" data-route="${route}">
+    <span class="practice-intent-icon" aria-hidden="true">${icon}</span>
+    <span class="practice-intent-copy">
+      <strong>${escapeHtml(title)}</strong>
+      <small>${escapeHtml(text)}</small>
+    </span>
+    <span class="practice-intent-meta">${escapeHtml(meta)}</span>
+    <span class="practice-intent-arrow" aria-hidden="true">→</span>
+  </button>`;
+}
+
+function escapeHtml(value=""){
+  return String(value??"")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }

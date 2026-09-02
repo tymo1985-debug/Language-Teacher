@@ -1,4 +1,4 @@
-const CACHE_NAME="language-teacher-shell-v15";
+const CACHE_NAME="language-teacher-shell-v16";
 const APP_SHELL=[
   "./","./index.html","./manifest.webmanifest","./update.json",
   "./src/app/app.js","./src/app/router.js","./src/app/state.js","./src/app/version.js",
@@ -21,7 +21,7 @@ const APP_SHELL=[
   "./src/ui/styles/responsive.css","./src/ui/styles/review.css","./src/ui/styles/session-update.css",
   "./src/ui/styles/speech.css","./src/ui/styles/teacher.css","./src/ui/styles/conversation.css",
   "./src/ui/styles/real-life.css","./src/ui/styles/release.css","./src/ui/styles/today-intelligence.css",
-  "./src/ui/styles/library.css","./src/ui/styles/progress-meaningful.css",
+  "./src/ui/styles/library.css","./src/ui/styles/progress-meaningful.css","./src/ui/styles/practice-guided.css",
   "./assets/icons/icon-192.png","./assets/icons/icon-512.png"
 ];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)))});
