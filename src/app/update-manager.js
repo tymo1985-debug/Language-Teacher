@@ -1,6 +1,8 @@
 import {APP_VERSION,RELEASE_NOTES} from "./version.js";
 import {getSetting,setSetting} from "../storage/db.js";
 
+let activeRegistration=null;
+
 function parts(version){
   return String(version).split(".").map(value=>Number(value)||0);
 }
@@ -40,8 +42,8 @@ export async function checkRemoteUpdate(){
       headers:{"Accept":"application/json"}
     });
     if(!response.ok)return null;
-    const data=await response.json();
 
+    const data=await response.json();
     if(!data?.latestVersion||!isNewerVersion(data.latestVersion)){
       return null;
     }
@@ -63,10 +65,11 @@ export async function watchServiceWorker(onReady){
   if(!("serviceWorker" in navigator))return null;
 
   const registration=await navigator.serviceWorker.register("./sw.js");
+  activeRegistration=registration;
   await registration.update().catch(()=>{});
 
   if(registration.waiting){
-    onReady(registration);
+    onReady();
   }
 
   registration.addEventListener("updatefound",()=>{
@@ -75,7 +78,7 @@ export async function watchServiceWorker(onReady){
 
     worker.addEventListener("statechange",()=>{
       if(worker.state==="installed"&&navigator.serviceWorker.controller){
-        onReady(registration);
+        onReady();
       }
     });
   });
@@ -83,6 +86,10 @@ export async function watchServiceWorker(onReady){
   return registration;
 }
 
-export function applyWaitingUpdate(registration){
-  registration?.waiting?.postMessage({type:"SKIP_WAITING"});
+export function hasWaitingUpdate(){
+  return Boolean(activeRegistration?.waiting);
+}
+
+export function applyWaitingUpdate(){
+  activeRegistration?.waiting?.postMessage({type:"SKIP_WAITING"});
 }

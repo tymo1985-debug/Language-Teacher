@@ -22,19 +22,22 @@ const state={
   todaySession:null,
   sessionHistory:[],
   updateNotice:null,
-  updateRegistration:null,
   speech:{
-    capabilities:{
-      recording:false,
-      playback:false,
-      synthesis:false,
-      recognition:false
-    },
+    capabilities:{recording:false,playback:false,synthesis:false,recognition:false},
     recording:false,
     recordingUrl:null,
     recordingDurationMs:0,
     referenceText:"",
     transcript:"",
+    error:null
+  },
+  ai:{
+    providerId:"local-demo",
+    providerLabel:"Local architecture demo",
+    remote:false,
+    input:"",
+    loading:false,
+    response:null,
     error:null
   }
 };
@@ -53,6 +56,11 @@ export function updateSettings(patch){
 
 export function updateSpeech(patch){
   state.speech={...state.speech,...patch};
+  listeners.forEach(fn=>fn(getState()));
+}
+
+export function updateAI(patch){
+  state.ai={...state.ai,...patch};
   listeners.forEach(fn=>fn(getState()));
 }
 

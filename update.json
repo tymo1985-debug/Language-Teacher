@@ -1,11 +1,11 @@
 {
-  "latestVersion": "0.6.0",
-  "phase": "Phase 6 · Speech",
+  "latestVersion": "0.7.0",
+  "phase": "Phase 7 · AI Teacher",
   "publishedAt": "2026-09-02",
   "changes": [
-    "Запись голоса и локальное воспроизведение.",
-    "Браузерный Text-to-Speech для эталонных фраз.",
-    "Опциональное распознавание речи без жёсткой зависимости от browser SpeechRecognition.",
-    "Голосовая практика внутри речевых Session blocks."
+    "Исправлено зависавшее окно «Что нового» и конфликт с onboarding.",
+    "AI Teacher получил provider abstraction и Context Builder.",
+    "Ответы AI теперь проходят строгую валидацию перед попаданием в приложение.",
+    "Подготовлен безопасный proxy-provider без API-ключей во frontend."
   ]
 }

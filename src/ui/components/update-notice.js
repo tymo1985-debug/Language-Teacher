@@ -1,6 +1,8 @@
 export function renderUpdateNotice(state){
   const notice=state.updateNotice;
-  if(!notice)return "";
+
+  // Update notices are informational and must never compete with first-run onboarding.
+  if(!notice||state.onboardingOpen)return "";
 
   return `<aside class="update-notice" role="status" aria-live="polite">
     <div class="update-notice-head">
@@ -8,7 +10,7 @@ export function renderUpdateNotice(state){
         <p class="eyebrow">${notice.kind==="available"?"UPDATE AVAILABLE":"WHAT'S NEW"}</p>
         <strong>${escapeHtml(notice.title)}</strong>
       </div>
-      <button type="button" class="icon-button update-close" id="update-dismiss" aria-label="Закрыть">×</button>
+      <button type="button" class="icon-button update-close" data-update-dismiss aria-label="Закрыть">×</button>
     </div>
 
     ${notice.phase?`<p class="muted update-phase">${escapeHtml(notice.phase)}</p>`:""}
@@ -25,7 +27,7 @@ export function renderUpdateNotice(state){
           Обновить сейчас
         </button>
       `:""}
-      <button type="button" class="secondary-button compact" id="update-dismiss-secondary">
+      <button type="button" class="secondary-button compact" data-update-dismiss>
         ${notice.kind==="installed"?"Понятно":"Позже"}
       </button>
     </div>

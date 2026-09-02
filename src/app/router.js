@@ -1,5 +1,5 @@
 const ROUTES=new Set([
-  "today","practice","session","speech","review","words","progress","settings"
+  "today","practice","session","speech","teacher","review","words","progress","settings"
 ]);
 
 function routeFromHash(){
@@ -7,9 +7,7 @@ function routeFromHash(){
   return ROUTES.has(raw)?raw:"today";
 }
 
-export function getRoute(){
-  return routeFromHash();
-}
+export function getRoute(){return routeFromHash();}
 
 export function navigate(route){
   const next=ROUTES.has(route)?route:"today";
@@ -19,10 +17,7 @@ export function navigate(route){
 export function startRouter(onChange){
   const handler=()=>onChange(routeFromHash());
   window.addEventListener("hashchange",handler);
-  if(!window.location.hash){
-    window.location.hash="#/today";
-  }else{
-    handler();
-  }
+  if(!window.location.hash)window.location.hash="#/today";
+  else handler();
   return()=>window.removeEventListener("hashchange",handler);
 }

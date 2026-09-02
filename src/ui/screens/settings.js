@@ -2,6 +2,7 @@ import {APP_VERSION,APP_PHASE,APP_BUILD_DATE,DB_SCHEMA_VERSION} from "../../app/
 
 export function renderSettings(state){
   const caps=state.speech?.capabilities??{};
+  const ai=state.ai??{};
 
   return `<section class="stack-lg">
     <div class="page-intro">
@@ -12,10 +13,7 @@ export function renderSettings(state){
 
     <div class="settings-list">
       <label class="setting-row">
-        <span>
-          <strong>Язык интерфейса</strong>
-          <small>Полная локализация UI появится позже.</small>
-        </span>
+        <span><strong>Язык интерфейса</strong><small>Полная локализация UI появится позже.</small></span>
         <select id="interface-language" class="select-control">
           <option value="ru" ${state.settings.interfaceLanguage==="ru"?"selected":""}>Русский</option>
           <option value="en" ${state.settings.interfaceLanguage==="en"?"selected":""}>English</option>
@@ -23,10 +21,7 @@ export function renderSettings(state){
         </select>
       </label>
       <label class="setting-row">
-        <span>
-          <strong>Уменьшить анимацию</strong>
-          <small>Настройка доступности.</small>
-        </span>
+        <span><strong>Уменьшить анимацию</strong><small>Настройка доступности.</small></span>
         <input id="reduce-motion" type="checkbox" ${state.settings.reduceMotion?"checked":""}>
       </label>
     </div>
@@ -50,6 +45,15 @@ export function renderSettings(state){
     </article>
 
     <article class="info-card">
+      <p class="eyebrow">AI TEACHER</p>
+      <h3>${escapeHtml(ai.providerLabel??"Local architecture demo")}</h3>
+      <p class="muted">
+        Текущий provider локальный и демонстрационный. Для настоящего AI предусмотрен безопасный backend proxy;
+        API-ключи никогда не должны храниться в PWA.
+      </p>
+    </article>
+
+    <article class="info-card">
       <p class="eyebrow">SPEECH</p>
       <h3>Возможности этого устройства</h3>
       <div class="speech-settings-grid">
@@ -58,9 +62,6 @@ export function renderSettings(state){
         ${speechStatus("Text-to-Speech",caps.synthesis)}
         ${speechStatus("Распознавание речи",caps.recognition)}
       </div>
-      <p class="muted version-help">
-        Распознавание речи необязательно: при его отсутствии MediaRecorder и локальное прослушивание продолжают работать.
-      </p>
     </article>
 
     <article class="info-card version-card">
@@ -75,15 +76,13 @@ export function renderSettings(state){
         <span>Update check: ${state.online?"online":"offline"}</span>
       </div>
     </article>
-
-    <article class="info-card">
-      <p class="eyebrow">STORAGE</p>
-      <h3>${state.storageReady?`IndexedDB подключён · schema v${DB_SCHEMA_VERSION}`:"IndexedDB недоступен"}</h3>
-      <p class="muted">Данные остаются local-first и разделены по языковым профилям.</p>
-    </article>
   </section>`;
 }
 
 function speechStatus(label,available){
   return `<div class="speech-setting-row"><span>${available?"✓":"—"}</span><strong>${label}</strong><small>${available?"Доступно":"Недоступно"}</small></div>`;
+}
+
+function escapeHtml(value=""){
+  return String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
 }
