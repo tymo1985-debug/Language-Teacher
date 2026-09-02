@@ -3,10 +3,20 @@
 ## Status
 - Phase 1 — Foundation ✅
 - Phase 2 — Language Profiles ✅
-- Next: Phase 3 — Learning Data
+- Phase 3 — Learning Data ✅
+- Next: Phase 4 — Review / SRS
 
-## Phase 2
-Adds `local-user`, multiple language profiles, active-language switching, learning goals, initial self-assessment and IndexedDB schema v2.
+## Phase 3
+Adds persistent domain models and repository access for:
+- `LearningItem`
+- `Mistake`
+- `Session`
+- `PersonalSituation`
+- `Progress`
+
+Also adds an explicit IndexedDB migration pipeline (`schema v3`) and language-scoped data summaries.
+
+No demo learning records are seeded: future learning content must come from real practice and Session Engine.
 
 ## Run
 ```bash

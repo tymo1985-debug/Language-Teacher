@@ -1,19 +1,2 @@
-export function renderWords() {
-  return `
-    <section class="stack-lg">
-      <div class="page-intro">
-        <p class="eyebrow">LEARNING ITEMS</p>
-        <h2>Не словарь, а usable language</h2>
-        <p class="muted">
-          В Phase 3 здесь появятся слова, chunks, фразы и грамматические паттерны.
-        </p>
-      </div>
-
-      <article class="empty-state">
-        <div class="empty-icon" aria-hidden="true">Aa</div>
-        <h3>Пока нет изученных элементов</h3>
-        <p>Структура экрана готова; данные будут подключены позже.</p>
-      </article>
-    </section>
-  `;
-}
+export function renderWords(state){const summary=state.learningSummary??{},active=state.languageProfiles.find(p=>p.languageId===state.activeLanguageId);if(!active)return `<section class="stack-lg"><div class="page-intro"><p class="eyebrow">LEARNING ITEMS</p><h2>Сначала добавьте язык</h2><p class="muted">Learning Items всегда принадлежат конкретному языковому профилю.</p></div></section>`;return `<section class="stack-lg"><div class="page-intro"><p class="eyebrow">${active.flag} LEARNING DATA</p><h2>Не словарь, а usable language</h2><p class="muted">Phase 3 подключила постоянную модель LearningItem. В следующих фазах сюда начнут попадать слова, chunks, фразы и грамматические паттерны из реальных занятий.</p></div><div class="card-grid">${dataCard("Learning Items",summary.learningItems??0,"Слова, chunks, фразы и паттерны")}${dataCard("Active mistakes",summary.mistakes??0,"Значимые ошибки для будущей практики")}${dataCard("Sessions",summary.sessions??0,"История и планы занятий")}${dataCard("Situations",summary.situations??0,"Сохранённые реальные ситуации")}</div>${(summary.learningItems??0)===0?`<article class="empty-state"><div class="empty-icon" aria-hidden="true">Aa</div><h3>База готова к первым учебным данным</h3><p>Пока ничего не добавляем искусственно: реальные Learning Items появятся из Session Engine и практики.</p></article>`:""}</section>`;}
+function dataCard(title,value,text){return `<article class="feature-card is-static"><span class="feature-card-title">${title}</span><strong style="font-size:2rem;margin-top:12px">${value}</strong><span class="feature-card-text">${text}</span></article>`;}
