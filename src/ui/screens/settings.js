@@ -62,8 +62,11 @@ export function renderSettings(state){
       <div class="version-meta">
         <span>Build: ${APP_BUILD_DATE}</span>
         <span>Database schema: v${DB_SCHEMA_VERSION}</span>
-        <span>Review engine: active</span>
+        <span>Update check: ${state.online?"online":"offline"}</span>
       </div>
+      <p class="muted version-help">
+        Начиная с версии 0.5.0 приложение автоматически проверяет наличие новой версии и показывает краткое описание изменений.
+      </p>
     </article>
 
     <article class="info-card">

@@ -18,7 +18,11 @@ const state={
     progress:null
   },
   reviewQueue:[],
-  reviewAnswerVisible:false
+  reviewAnswerVisible:false,
+  todaySession:null,
+  sessionHistory:[],
+  updateNotice:null,
+  updateRegistration:null
 };
 
 export const getState=()=>structuredClone(state);

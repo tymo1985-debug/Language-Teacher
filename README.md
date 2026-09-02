@@ -5,25 +5,32 @@
 - Phase 2 — Language Profiles ✅
 - Phase 3 — Learning Data ✅
 - Phase 4 — Review / SRS ✅
-- Next: Phase 5 — Session Engine
+- Phase 5 — Session Engine ✅
+- Next: Phase 6 — Speech
 
 ## Current version
-**0.4.0** — Phase 4 · Review / SRS
+**0.5.0** — Phase 5 · Session Engine
 
-The current version, phase, build date and database schema are also visible in **Settings → Application**.
-
-## Phase 4
+## Phase 5
 Adds:
-- deterministic local SRS scheduling;
-- due-review queue;
-- weakest-memory-dimension exercise selection;
-- active recall review screen;
-- `Again / Hard / Good / Easy` ratings;
-- persisted review history;
-- per-dimension memory updates;
-- centralized application version metadata.
+- local adaptive Session Engine;
+- Today session generated from profile, due reviews, mistakes, situations and existing Learning Items;
+- structured training blocks;
+- Session screen;
+- block completion and persisted session history;
+- in-app update notifications;
+- remote `update.json` version check;
+- service-worker update-ready prompt;
+- short release notes after a newly installed version.
 
-SRS operates only on real `LearningItem` records. No artificial demo cards are seeded.
+The Session Engine has no AI dependency. It deliberately uses stored/local data first.
+
+## Updates
+Starting with 0.5.0, the app can:
+1. show “What’s new” after a version changes;
+2. check `update.json` for a newer published version;
+3. detect when a new service worker is ready;
+4. let the user apply the waiting update from the in-app notice.
 
 ## Run
 ```bash

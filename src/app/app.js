@@ -4,13 +4,23 @@ import {ensureLocalUser,getRecord,getSetting,openDatabase,putRecord,setSetting} 
 import {DEFAULT_USER_ID,STORES} from "../storage/schema.js";
 import {createLanguageProfile,listLanguageProfiles,removeLanguageProfile} from "../language/profile-engine.js";
 import {SELF_ASSESSMENT} from "../language/language-catalog.js";
-import {ensureProgress,getLearningSummary} from "../learning/learning-repository.js";
+import {ensureProgress,getLearningSummary,listSessions} from "../learning/learning-repository.js";
 import {buildReviewQueue,recordReview} from "../learning/review-engine.js";
+import {advanceSession,ensureTodaySession} from "../learning/session-engine.js";
+import {
+  applyWaitingUpdate,
+  checkRemoteUpdate,
+  getReleaseNotice,
+  markCurrentVersionSeen,
+  watchServiceWorker
+} from "./update-manager.js";
 import {renderHeader} from "../ui/components/app-header.js";
 import {renderBottomNav} from "../ui/components/bottom-nav.js";
 import {renderLanguageOnboarding} from "../ui/components/language-onboarding.js";
+import {renderUpdateNotice} from "../ui/components/update-notice.js";
 import {renderToday} from "../ui/screens/today.js";
 import {renderPractice} from "../ui/screens/practice.js";
+import {renderSession} from "../ui/screens/session.js";
 import {renderReview} from "../ui/screens/review.js";
 import {renderWords} from "../ui/screens/words.js";
 import {renderProgress} from "../ui/screens/progress.js";
@@ -20,6 +30,7 @@ const app=document.querySelector("#app");
 const screens={
   today:renderToday,
   practice:renderPractice,
+  session:renderSession,
   review:renderReview,
   words:renderWords,
   progress:renderProgress,
@@ -28,12 +39,36 @@ const screens={
 
 function render(state){
   const screen=screens[state.route]??renderToday;
-  app.innerHTML=`${renderHeader(state)}<main class="app-main">${screen(state)}</main>${renderBottomNav(state.route)}${renderLanguageOnboarding(state)}`;
+  app.innerHTML=`
+    ${renderHeader(state)}
+    <main class="app-main">${screen(state)}</main>
+    ${renderBottomNav(state.route)}
+    ${renderLanguageOnboarding(state)}
+    ${renderUpdateNotice(state)}
+  `;
   bind();
 }
 
 const openModal=()=>setState({onboardingOpen:true});
 const closeModal=()=>setState({onboardingOpen:false});
+
+async function refreshSessionData(languageId=getState().activeLanguageId){
+  if(!languageId){
+    setState({todaySession:null,sessionHistory:[]});
+    return;
+  }
+
+  const profile=getState().languageProfiles.find(p=>p.languageId===languageId);
+  if(!profile)return;
+
+  const todaySession=await ensureTodaySession(profile,10);
+  const sessionHistory=(await listSessions(languageId))
+    .filter(session=>session.status==="completed")
+    .sort((a,b)=>(b.completedAt??"").localeCompare(a.completedAt??""))
+    .slice(0,10);
+
+  setState({todaySession,sessionHistory});
+}
 
 async function refreshReviewQueue(languageId=getState().activeLanguageId){
   const reviewQueue=languageId?await buildReviewQueue(languageId):[];
@@ -48,15 +83,21 @@ async function refreshLearningData(languageId=getState().activeLanguageId){
         reviews:0,dueReviews:0,progress:null
       },
       reviewQueue:[],
-      reviewAnswerVisible:false
+      reviewAnswerVisible:false,
+      todaySession:null,
+      sessionHistory:[]
     });
     return;
   }
+
   const profile=getState().languageProfiles.find(p=>p.languageId===languageId);
   await ensureProgress(languageId,profile?.skills??{});
-  const learningSummary=await getLearningSummary(languageId);
-  const reviewQueue=await buildReviewQueue(languageId);
+  const [learningSummary,reviewQueue]=await Promise.all([
+    getLearningSummary(languageId),
+    buildReviewQueue(languageId)
+  ]);
   setState({learningSummary,reviewQueue,reviewAnswerVisible:false});
+  await refreshSessionData(languageId);
 }
 
 async function setActiveLanguage(languageId){
@@ -92,11 +133,20 @@ async function refreshProfiles(preferred=null){
   }
 }
 
+async function dismissUpdateNotice(){
+  const notice=getState().updateNotice;
+  if(notice?.kind==="installed"){
+    await markCurrentVersionSeen();
+  }
+  setState({updateNotice:null});
+}
+
 function bind(){
   document.querySelectorAll("[data-route]").forEach(el=>{
     el.onclick=async()=>{
       const route=el.dataset.route;
       if(route==="review")await refreshReviewQueue();
+      if(route==="session")await refreshSessionData();
       location.hash=`#/${route}`;
     };
   });
@@ -154,6 +204,15 @@ function bind(){
     await refreshProfiles(languageId);
   };
 
+  const sessionNext=document.querySelector("#session-next");
+  if(sessionNext)sessionNext.onclick=async()=>{
+    const session=getState().todaySession;
+    if(!session)return;
+    const updated=await advanceSession(session);
+    setState({todaySession:updated});
+    await refreshLearningData(updated.languageId);
+  };
+
   const reveal=document.querySelector("#review-reveal");
   if(reveal)reveal.onclick=()=>setState({reviewAnswerVisible:true});
 
@@ -182,6 +241,56 @@ function bind(){
     document.documentElement.dataset.reduceMotion=e.target.checked?"true":"false";
     await setSetting("reduceMotion",e.target.checked);
   };
+
+  document.querySelector("#update-dismiss")?.addEventListener("click",dismissUpdateNotice);
+  document.querySelector("#update-dismiss-secondary")?.addEventListener("click",dismissUpdateNotice);
+
+  document.querySelector("#update-apply")?.addEventListener("click",()=>{
+    applyWaitingUpdate(getState().updateRegistration);
+  });
+}
+
+async function initializeUpdates(){
+  const installedNotice=await getReleaseNotice();
+  if(installedNotice){
+    setState({updateNotice:installedNotice});
+  }
+
+  const registration=await watchServiceWorker(reg=>{
+    const current=getState().updateNotice;
+    setState({
+      updateRegistration:reg,
+      updateNotice:{
+        ...(current??{
+          kind:"available",
+          title:"Доступно обновление приложения",
+          changes:["Новая версия загружена и готова к установке."]
+        }),
+        serviceWorkerReady:true
+      }
+    });
+  }).catch(error=>{
+    console.debug("Service worker update watch unavailable:",error);
+    return null;
+  });
+
+  if(registration){
+    setState({updateRegistration:registration});
+  }
+
+  const remoteNotice=await checkRemoteUpdate();
+  if(remoteNotice){
+    setState({
+      updateNotice:{
+        ...remoteNotice,
+        serviceWorkerReady:Boolean(registration?.waiting)
+      }
+    });
+  }
+
+  navigator.serviceWorker?.addEventListener("controllerchange",()=>{
+    location.reload();
+  });
 }
 
 async function bootstrap(){
@@ -218,7 +327,9 @@ async function bootstrap(){
       const profile=profiles.find(p=>p.languageId===active);
       await ensureProgress(active,profile?.skills??{});
     }
+
     await refreshLearningData(active);
+    await initializeUpdates();
   }catch(error){
     console.error(error);
     setState({storageReady:false});
@@ -227,14 +338,18 @@ async function bootstrap(){
 
 subscribe(render);
 render(getState());
+
 startRouter(route=>{
   setState({route});
   if(route==="review")refreshReviewQueue();
+  if(route==="session")refreshSessionData();
 });
-addEventListener("online",()=>setState({online:true}));
-addEventListener("offline",()=>setState({online:false}));
-bootstrap();
 
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("./sw.js").catch(console.error);
-}
+addEventListener("online",async()=>{
+  setState({online:true});
+  const notice=await checkRemoteUpdate();
+  if(notice)setState({updateNotice:notice});
+});
+addEventListener("offline",()=>setState({online:false}));
+
+bootstrap();

@@ -1,4 +1,6 @@
-const ROUTES=new Set(["today","practice","review","words","progress","settings"]);
+const ROUTES=new Set([
+  "today","practice","session","review","words","progress","settings"
+]);
 
 function routeFromHash(){
   const raw=window.location.hash.replace(/^#\/?/,"").trim();

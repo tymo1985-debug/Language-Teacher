@@ -1,0 +1,11 @@
+{
+  "latestVersion": "0.5.0",
+  "phase": "Phase 5 · Session Engine",
+  "publishedAt": "2026-09-02",
+  "changes": [
+    "Локальный Session Engine и рекомендованное занятие Today.",
+    "Session screen с пошаговыми training blocks.",
+    "Сохранение завершённых занятий в локальную историю.",
+    "Встроенное уведомление о доступных обновлениях."
+  ]
+}
