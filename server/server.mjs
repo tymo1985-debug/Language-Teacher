@@ -4,10 +4,12 @@ import {createServer} from "node:http";
 import path from "node:path";
 import {fileURLToPath} from "node:url";
 import {requestOpenAITeacherResponse} from "./openai-teacher.mjs";
+import {getServerBindConfig} from "./bind-config.mjs";
 
 const SERVER_DIR=path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR=path.resolve(SERVER_DIR,"..");
 const PORT=Number(process.env.PORT)||8787;
+const HOST=String(process.env.HOST||"0.0.0.0");
 const BODY_LIMIT=128*1024;
 const WINDOW_MS=60_000;
 const REQUEST_LIMIT=30;
@@ -150,7 +152,10 @@ export function createLanguageTeacherServer(){
 }
 
 if(process.argv[1]===fileURLToPath(import.meta.url)){
-  createLanguageTeacherServer().listen(PORT,"127.0.0.1",()=>{
-    console.log(`Language Teacher is running at http://127.0.0.1:${PORT}`);
+  const bind=getServerBindConfig();
+  createLanguageTeacherServer().listen(bind.port,bind.host,()=>{
+    const displayHost=bind.host==="0.0.0.0"?"127.0.0.1":bind.host;
+    console.log(`Language Teacher is running at http://${displayHost}:${bind.port}`);
+    console.log(`Server bind: ${bind.host}:${bind.port}`);
   });
 }

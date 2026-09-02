@@ -1,11 +1,11 @@
 {
-  "latestVersion": "1.13.0",
-  "phase": "Phase 19 · Final Polish / Release Candidate",
+  "latestVersion": "1.13.1",
+  "phase": "Phase 19.1 · Release Blockers Fix",
   "publishedAt": "2026-09-02",
   "changes": [
-    "Runtime Release Check стал полноценной диагностикой PWA/offline/storage/speech/cloud setup.",
-    "Repository gate валидирует Service Worker APP_SHELL, manifest и public deployment config.",
-    "Settings показывает подробные blocking/optional результаты.",
-    "Добавлен Release Candidate checklist для финального глубокого аудита."
+    "Восстановлен GitHub Actions Release Gate workflow.",
+    "Cloud backend bind изменён с localhost на 0.0.0.0 по умолчанию.",
+    "HOST/PORT можно переопределять окружением.",
+    "Release Gate проверяет наличие workflow."
   ]
 }

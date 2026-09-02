@@ -36,9 +36,7 @@ export function validateManifest(manifest){
 
 export function validateDeploymentConfig(source){
   const errors=[];
-  if(/OPENAI_API_KEY\s*=|sk-[A-Za-z0-9_-]{20,}/.test(source)){
-    errors.push("deployment-config.js appears to contain a secret.");
-  }
+  if(/OPENAI_API_KEY\s*=|sk-[A-Za-z0-9_-]{20,}/.test(source))errors.push("deployment-config.js appears to contain a secret.");
   if(!/aiProxyBaseUrl/.test(source))errors.push("deployment-config.js must expose aiProxyBaseUrl.");
   return {ok:errors.length===0,errors};
 }
@@ -49,7 +47,6 @@ export function validateReleaseMetadata({versionModule,packageJson,updateJson,se
   const pkg=typeof packageJson==="string"?JSON.parse(packageJson):packageJson;
   const update=typeof updateJson==="string"?JSON.parse(updateJson):updateJson;
   const cache=parseServiceWorkerCache(serviceWorker);
-
   if(!app.version)errors.push("APP_VERSION is missing.");
   if(app.version!==pkg.version)errors.push(`Version mismatch: app ${app.version} != package ${pkg.version}.`);
   if(app.version!==update.latestVersion)errors.push(`Version mismatch: app ${app.version} != update ${update.latestVersion}.`);
@@ -65,7 +62,7 @@ async function walk(dir){
   for(const entry of await readdir(dir,{withFileTypes:true})){
     if(["node_modules",".git"].includes(entry.name))continue;
     const full=path.join(dir,entry.name);
-    if(entry.isDirectory())out.push(...await walk(full)); else out.push(full);
+    if(entry.isDirectory())out.push(...await walk(full));else out.push(full);
   }
   return out;
 }
@@ -97,17 +94,15 @@ async function checkReleaseMetadata(){
     readFile(path.join(ROOT,"manifest.webmanifest"),"utf8"),
     readFile(path.join(ROOT,"deployment-config.js"),"utf8")
   ]);
-
   const metadata=validateReleaseMetadata({versionModule,packageJson,updateJson,serviceWorker});
-  const manifestResult=validateManifest(manifest);
-  const configResult=validateDeploymentConfig(deploymentConfig);
-  const errors=[...metadata.errors,...manifestResult.errors,...configResult.errors];
+  const errors=[...metadata.errors,...validateManifest(manifest).errors,...validateDeploymentConfig(deploymentConfig).errors];
   if(errors.length)fail(errors.join("\n"));
   return metadata;
 }
 
 async function checkRequiredFiles(){
   const required=[
+    ".github/workflows/release-gate.yml",
     "index.html","manifest.webmanifest","sw.js","update.json","package.json","deployment-config.js",
     "src/app/app.js","src/app/state.js","src/app/version.js","src/app/update-manager.js","src/app/release-check.js",
     "src/storage/db.js","src/storage/backup.js","src/storage/restore.js",
