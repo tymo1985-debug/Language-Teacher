@@ -1,10 +1,10 @@
-const CACHE_NAME="language-teacher-shell-v20";
+const CACHE_NAME="language-teacher-shell-v21";
 const APP_SHELL=[
   "./","./index.html","./manifest.webmanifest","./update.json","./deployment-config.js",
   "./src/app/app.js","./src/app/router.js","./src/app/state.js","./src/app/version.js",
   "./src/app/update-manager.js","./src/app/release-check.js",
   "./src/language/language-catalog.js","./src/language/profile-engine.js",
-  "./src/learning/models.js","./src/learning/learning-repository.js","./src/learning/mistake-engine.js",
+  "./src/learning/models.js","./src/learning/learning-repository.js","./src/learning/mistake-engine.js","./src/learning/grammar-focus.js",
   "./src/learning/srs-engine.js","./src/learning/review-engine.js","./src/learning/session-engine.js","./src/learning/progress-engine.js",
   "./src/learning/conversation-engine.js","./src/learning/real-life-engine.js",
   "./src/ai/provider.js","./src/ai/local-demo-provider.js","./src/ai/proxy-provider.js","./src/ai/proxy-config.js",
@@ -24,7 +24,6 @@ const APP_SHELL=[
   "./src/ui/styles/library.css","./src/ui/styles/progress-meaningful.css","./src/ui/styles/practice-guided.css","./src/ui/styles/ai-deployment.css",
   "./assets/icons/icon-192.png","./assets/icons/icon-512.png"
 ];
-
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)))});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
 self.addEventListener("message",event=>{if(event.data?.type==="SKIP_WAITING")self.skipWaiting()});
