@@ -1,11 +1,11 @@
 {
-  "latestVersion": "1.10.0",
-  "phase": "Phase 17 · Release Gates",
+  "latestVersion": "1.11.0",
+  "phase": "Phase 18 · UI Localization Foundation",
   "publishedAt": "2026-09-02",
   "changes": [
-    "Добавлен npm run gate для единой release-проверки.",
-    "Gate проверяет согласованность version.js, package.json, update.json и Service Worker.",
-    "Все JS/MJS проходят node --check, затем запускается полный node:test.",
-    "Добавлен GitHub Actions workflow для автоматической проверки main и pull requests."
+    "Добавлен i18n-слой ru/en/uk.",
+    "Локализованы header, bottom navigation, onboarding и Practice.",
+    "Цели и self-assessment локализуются по ID.",
+    "Settings теперь честно показывает текущий объём локализации."
   ]
 }
