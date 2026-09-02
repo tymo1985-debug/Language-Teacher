@@ -33,6 +33,7 @@ export function renderSession(state){
   }
 
   const voiceBlock=VOICE_TYPES.has(block.type);
+  const listeningBlock=block.type==="LISTEN"&&Boolean(block.expectedAnswer);
 
   return `<section class="session-shell">
     <div class="session-topline">
@@ -44,20 +45,28 @@ export function renderSession(state){
       <span style="width:${progress.percent}%"></span>
     </div>
 
-    <article class="session-block-card">
+    <article class="session-block-card ${listeningBlock?"is-listening":""}">
       <p class="eyebrow">${escapeHtml(block.type)}</p>
       <h2>${escapeHtml(block.title)}</h2>
-      <p class="session-prompt">${escapeHtml(block.prompt)}</p>
 
-      ${block.cue?`<div class="session-cue">${escapeHtml(block.cue)}</div>`:""}
+      ${listeningBlock?`
+        <p class="session-prompt">Сначала прослушайте фразу без текста. Попробуйте понять её целиком или уловить ключевые слова.</p>
+        ${state.speech?.capabilities?.synthesis?`
+          <button type="button" class="primary-button session-listen-button" data-speak-text="${escapeAttr(block.expectedAnswer)}">
+            ▶ Прослушать
+          </button>
+        `:`<p class="muted">Text-to-Speech недоступен. Используйте текстовый ориентир ниже.</p>`}
+      `:`<p class="session-prompt">${escapeHtml(block.prompt)}</p>`}
+
+      ${block.cue&&!listeningBlock?`<div class="session-cue">${escapeHtml(block.cue)}</div>`:""}
 
       ${block.expectedAnswer?`
         <details class="session-answer">
-          <summary>Показать ориентир</summary>
+          <summary>${listeningBlock?"Показать текст":"Показать ориентир"}</summary>
           <p>${escapeHtml(block.expectedAnswer)}</p>
           ${state.speech?.capabilities?.synthesis?`
             <button type="button" class="text-button speech-reference-button" data-speak-text="${escapeAttr(block.expectedAnswer)}">
-              ▶ Прослушать ориентир
+              ▶ Прослушать ${listeningBlock?"ещё раз":"ориентир"}
             </button>
           `:""}
         </details>
@@ -74,7 +83,9 @@ export function renderSession(state){
     </article>
 
     <p class="muted session-note">
-      Запись остаётся локальной в текущей сессии интерфейса. Автоматическая оценка произношения ещё не выполняется.
+      ${listeningBlock
+        ?"Listening оценивается через понимание фразы и последующее повторение, без искусственного аудио-скоринга."
+        :"Запись остаётся локальной в текущей сессии интерфейса. Автоматическая оценка произношения не выполняется."}
     </p>
   </section>`;
 }

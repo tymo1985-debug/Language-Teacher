@@ -17,9 +17,7 @@ export function renderReview(state){
       <div class="page-intro">
         <p class="eyebrow">${active.flag} REVIEW</p>
         <h2>На сегодня всё повторено</h2>
-        <p class="muted">
-          Когда Learning Items станут готовы к повторению, они автоматически появятся здесь.
-        </p>
+        <p class="muted">Когда Learning Items станут готовы к повторению, они автоматически появятся здесь.</p>
       </div>
       <article class="empty-state">
         <div class="empty-icon" aria-hidden="true">✓</div>
@@ -32,6 +30,7 @@ export function renderReview(state){
 
   const {item,exercise}=current;
   const remaining=state.reviewQueue.length;
+  const listening=exercise.dimension==="listening";
 
   return `<section class="review-shell">
     <div class="review-topline">
@@ -39,25 +38,40 @@ export function renderReview(state){
       <span class="pill">${remaining} в очереди</span>
     </div>
 
-    <article class="review-card">
-      <p class="eyebrow">${exercise.dimension.toUpperCase()}</p>
-      <p class="review-instruction">${exercise.instruction}</p>
-      <div class="review-prompt">${escapeHtml(exercise.prompt)}</div>
+    <article class="review-card ${listening?"is-listening":""}">
+      <p class="eyebrow">${listening?"LISTENING":exercise.dimension.toUpperCase()}</p>
+      <p class="review-instruction">${escapeHtml(exercise.instruction)}</p>
+
+      ${listening?`
+        <div class="review-listening-prompt">
+          <div class="review-listening-icon" aria-hidden="true">◖</div>
+          <strong>${escapeHtml(exercise.prompt)}</strong>
+          ${state.speech?.capabilities?.synthesis?`
+            <button type="button" class="primary-button" data-speak-text="${escapeAttr(exercise.audioText??exercise.answer)}">
+              ▶ Прослушать фразу
+            </button>
+          `:`<small class="muted">Text-to-Speech недоступен на этом устройстве. Используйте обычные Review.</small>`}
+        </div>
+      `:`<div class="review-prompt">${escapeHtml(exercise.prompt)}</div>`}
 
       ${state.reviewAnswerVisible?`
         <div class="review-answer">
-          <p class="eyebrow">ОТВЕТ</p>
+          <p class="eyebrow">${listening?"ЧТО БЫЛО СКАЗАНО":"ОТВЕТ"}</p>
           <strong>${escapeHtml(exercise.answer)}</strong>
+          ${listening&&exercise.meaning?`<p>${escapeHtml(exercise.meaning)}</p>`:""}
+          ${listening&&state.speech?.capabilities?.synthesis?`
+            <button type="button" class="text-button" data-speak-text="${escapeAttr(exercise.audioText??exercise.answer)}">▶ Прослушать ещё раз</button>
+          `:""}
         </div>
         <div class="review-rating-grid">
-          ${ratingButton("again","Again","10 мин")}
-          ${ratingButton("hard","Hard","трудно")}
-          ${ratingButton("good","Good","нормально")}
-          ${ratingButton("easy","Easy","легко")}
+          ${ratingButton("again",listening?"Не понял":"Again","10 мин")}
+          ${ratingButton("hard",listening?"Частично":"Hard","трудно")}
+          ${ratingButton("good",listening?"Услышал":"Good","нормально")}
+          ${ratingButton("easy",listening?"Легко":"Easy","легко")}
         </div>
       `:`
         <button class="primary-button review-reveal" type="button" id="review-reveal">
-          Показать ответ
+          ${listening?"Показать текст и смысл":"Показать ответ"}
         </button>
       `}
     </article>
@@ -82,3 +96,4 @@ function escapeHtml(value=""){
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
 }
+function escapeAttr(value=""){return escapeHtml(value);}

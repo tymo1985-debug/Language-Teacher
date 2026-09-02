@@ -1,11 +1,11 @@
 {
-  "latestVersion": "1.7.0",
-  "phase": "Phase 14 · Speech / Pronunciation",
+  "latestVersion": "1.8.0",
+  "phase": "Phase 15 · Listening Practice",
   "publishedAt": "2026-09-02",
   "changes": [
-    "Speech переработан вокруг цикла «слушать → говорить → слушать себя».",
-    "SpeechRecognition используется только как проверка распознанных слов.",
-    "Добавлено сравнение эталонного и распознанного текста без pronunciation score.",
-    "Основной pronunciation flow остаётся полностью local-first."
+    "Listening Review стал audio-first: сначала фраза на слух, затем текст и смысл.",
+    "Listening rating обновляет существующую SRS memory.",
+    "LISTEN-блоки Today Session получили реальное аудио через системный Text-to-Speech.",
+    "Никакого отдельного аудио-скоринга или внешнего сервиса не добавлено."
   ]
 }

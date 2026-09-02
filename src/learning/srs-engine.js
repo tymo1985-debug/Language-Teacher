@@ -31,9 +31,11 @@ export function chooseReviewExercise(item){
     return {
       dimension,
       kind:"listening-recall",
-      prompt:item.meaning||item.text,
-      instruction:"Произнесите выражение вслух по памяти. Аудио будет подключено в Speech phase.",
-      answer:item.text
+      prompt:"Прослушайте фразу без текста и вспомните её смысл.",
+      instruction:"Сначала слушайте. Текст появится только после ответа.",
+      answer:item.text,
+      meaning:item.meaning||"Значение пока не указано.",
+      audioText:item.text
     };
   }
 
