@@ -1,88 +1,82 @@
 const SUPPORTED=new Set(["ru","en","uk"]);
 let currentLocale="ru";
 
-const DICTIONARY={
-  ru:{
-    nav_today:"Сегодня",nav_practice:"Практика",nav_words:"Слова",nav_progress:"Прогресс",nav_settings:"Настройки",
-    nav_label:"Основная навигация",add_language:"+ Язык",online:"Online",offline:"Offline",
-    add_language_title:"Какой язык будем учить?",language:"Язык",choose_language:"Выберите язык",
-    language_reason:"Для чего он вам нужен?",multiple_goals:"Можно выбрать несколько целей.",
-    confidence:"Насколько уверенно вы чувствуете себя сейчас?",cancel:"Отмена",add:"Добавить язык",
-    practice_title:"Что вы хотите сделать сейчас?",practice_intro:"Выберите намерение, а не внутреннюю функцию приложения. Language Teacher сам направит вас в подходящий режим.",
-    talk:"Поговорить",talk_text:"Живой многоходовый диалог. Сначала отвечаете сами, потом получаете только важные исправления.",
-    pronunciation:"Потренировать произношение",pronunciation_text:"Прослушать эталон, записать себя и сравнить звучание без искусственного псевдо-скоринга.",
-    review:"Повторить знакомое",review_text:"Активно вспомнить выражения, которые подошли к повторению, по их слабейшему навыку.",
-    real_life:"Мне нужно это сейчас",real_life_text:"Опишите реальную ситуацию и получите естественную фразу, которую можно сразу потренировать и сохранить.",
-    grammar:"Разобрать грамматику",grammar_text:"Сфокусироваться на реальной повторяющейся ошибке из вашей собственной практики.",
-    grammar_empty:"Короткое объяснение одной конструкции → активное применение, без учебника грамматики.",
-    recommended:"РЕКОМЕНДОВАНО СЕГОДНЯ",start_today:"Начать сегодняшнее занятие",continue_today:"Продолжить сегодняшнее занятие",view_today:"Посмотреть сегодняшнее занятие",
-    completed_today:"Основная практика уже завершена.",blocks:"блоков",remaining:"осталось",due:"к повторению",no_due:"Срочных повторений нет",
-    tools:"ДОПОЛНИТЕЛЬНЫЕ ИНСТРУМЕНТЫ",tools_title:"Когда хочется выбрать формат вручную",custom_exercise:"Сформировать своё упражнение",
-    custom_exercise_hint:"AI Teacher · конкретная тема, ситуация или конструкция",session_preparing:"Session Engine ещё подготавливает локальную сессию",
-    ui_language:"Язык интерфейса",ui_language_hint:"Основная навигация, onboarding и Practice уже локализованы; остальные экраны пока используют русский fallback.",
-    settings_title:"Настройки устройства",local_hint:"Профили языков и параметры сохраняются локально в IndexedDB.",
-    reduce_motion:"Уменьшить анимацию",accessibility:"Настройка доступности.",
-    goals:{"everyday-life":"Повседневная жизнь","living-in-country":"Жизнь в стране",work:"Работа",travel:"Путешествия",friends:"Друзья и общение",reading:"Чтение"},
-    assessment:{starter:"Я почти ничего не знаю",words:"Я понимаю отдельные слова",simple:"Я могу строить простые предложения",conversational:"Я разговариваю, но часто ошибаюсь",comfortable:"Я уже довольно свободно говорю"}
-  },
-  en:{
-    nav_today:"Today",nav_practice:"Practice",nav_words:"Library",nav_progress:"Progress",nav_settings:"Settings",
-    nav_label:"Main navigation",add_language:"+ Language",online:"Online",offline:"Offline",
-    add_language_title:"Which language would you like to learn?",language:"Language",choose_language:"Choose a language",
-    language_reason:"What do you need it for?",multiple_goals:"You can choose several goals.",
-    confidence:"How confident do you feel right now?",cancel:"Cancel",add:"Add language",
-    practice_title:"What would you like to do now?",practice_intro:"Choose an intention, not an internal app feature. Language Teacher will guide you to the right mode.",
-    talk:"Have a conversation",talk_text:"A real multi-turn dialogue. You answer first, then receive only useful corrections.",
-    pronunciation:"Practice pronunciation",pronunciation_text:"Listen to a reference, record yourself and compare without fake pronunciation scoring.",
-    review:"Review familiar language",review_text:"Actively recall expressions that are due, focusing on their weakest skill.",
-    real_life:"I need this right now",real_life_text:"Describe a real situation and get a natural phrase you can practice and save immediately.",
-    grammar:"Focus on grammar",grammar_text:"Work on a real recurring mistake from your own practice.",
-    grammar_empty:"One short explanation → active use, without turning the app into a grammar textbook.",
-    recommended:"RECOMMENDED TODAY",start_today:"Start today's session",continue_today:"Continue today's session",view_today:"View today's session",
-    completed_today:"Today's main practice is already complete.",blocks:"blocks",remaining:"remaining",due:"due for review",no_due:"Nothing urgent to review",
-    tools:"ADDITIONAL TOOLS",tools_title:"When you want to choose a format manually",custom_exercise:"Create a custom exercise",
-    custom_exercise_hint:"AI Teacher · a specific topic, situation or structure",session_preparing:"Session Engine is still preparing the local session",
-    ui_language:"Interface language",ui_language_hint:"Main navigation, onboarding and Practice are localized; remaining screens currently use a Russian fallback.",
-    settings_title:"Device settings",local_hint:"Language profiles and settings are stored locally in IndexedDB.",
-    reduce_motion:"Reduce motion",accessibility:"Accessibility setting.",
-    goals:{"everyday-life":"Everyday life","living-in-country":"Living in the country",work:"Work",travel:"Travel",friends:"Friends and communication",reading:"Reading"},
-    assessment:{starter:"I know almost nothing",words:"I understand individual words",simple:"I can build simple sentences",conversational:"I can speak, but I often make mistakes",comfortable:"I already speak quite comfortably"}
-  },
-  uk:{
-    nav_today:"Сьогодні",nav_practice:"Практика",nav_words:"Слова",nav_progress:"Прогрес",nav_settings:"Налаштування",
-    nav_label:"Основна навігація",add_language:"+ Мова",online:"Online",offline:"Offline",
-    add_language_title:"Яку мову будемо вивчати?",language:"Мова",choose_language:"Виберіть мову",
-    language_reason:"Для чого вона вам потрібна?",multiple_goals:"Можна вибрати кілька цілей.",
-    confidence:"Наскільки впевнено ви почуваєтеся зараз?",cancel:"Скасувати",add:"Додати мову",
-    practice_title:"Що ви хочете зробити зараз?",practice_intro:"Оберіть намір, а не внутрішню функцію застосунку. Language Teacher сам направить вас у відповідний режим.",
-    talk:"Поговорити",talk_text:"Живий багатокроковий діалог. Спочатку відповідаєте самі, потім отримуєте лише важливі виправлення.",
-    pronunciation:"Потренувати вимову",pronunciation_text:"Прослухати зразок, записати себе й порівняти звучання без штучного псевдо-оцінювання.",
-    review:"Повторити знайоме",review_text:"Активно пригадати вирази, для яких настав час повторення, за їхньою найслабшою навичкою.",
-    real_life:"Мені це потрібно зараз",real_life_text:"Опишіть реальну ситуацію й отримайте природну фразу, яку можна відразу потренувати та зберегти.",
-    grammar:"Розібрати граматику",grammar_text:"Зосередитися на реальній повторюваній помилці з вашої власної практики.",
-    grammar_empty:"Коротке пояснення однієї конструкції → активне застосування, без підручника граматики.",
-    recommended:"РЕКОМЕНДОВАНО СЬОГОДНІ",start_today:"Почати сьогоднішнє заняття",continue_today:"Продовжити сьогоднішнє заняття",view_today:"Переглянути сьогоднішнє заняття",
-    completed_today:"Основну практику на сьогодні вже завершено.",blocks:"блоків",remaining:"залишилося",due:"до повторення",no_due:"Термінових повторень немає",
-    tools:"ДОДАТКОВІ ІНСТРУМЕНТИ",tools_title:"Коли хочеться вибрати формат вручну",custom_exercise:"Створити власну вправу",
-    custom_exercise_hint:"AI Teacher · конкретна тема, ситуація або конструкція",session_preparing:"Session Engine ще готує локальне заняття",
-    ui_language:"Мова інтерфейсу",ui_language_hint:"Основна навігація, onboarding і Practice вже локалізовані; решта екранів поки використовує російський fallback.",
-    settings_title:"Налаштування пристрою",local_hint:"Мовні профілі й налаштування зберігаються локально в IndexedDB.",
-    reduce_motion:"Зменшити анімацію",accessibility:"Налаштування доступності.",
-    goals:{"everyday-life":"Повсякденне життя","living-in-country":"Життя в країні",work:"Робота",travel:"Подорожі",friends:"Друзі та спілкування",reading:"Читання"},
-    assessment:{starter:"Я майже нічого не знаю",words:"Я розумію окремі слова",simple:"Я можу будувати прості речення",conversational:"Я розмовляю, але часто помиляюся",comfortable:"Я вже досить вільно розмовляю"}
-  }
+const D={
+ru:{
+first_language:"Сначала добавьте язык",back_practice:"Назад к практике",back_today:"Вернуться на Today",you:"Вы",partner:"Собеседник",
+finish:"Завершить",send:"Отправить",dictate:"🎙 Продиктовать",thinking:"Формулирую ответ…",reply_placeholder:"Ответьте самостоятельно…",
+conversation_pick:"Выберите ситуацию",conversation_note:"Сначала отвечаете вы. Исправления показываются только после ответа и только если они значимы.",
+last_conversation:"Последний разговор сохранён",last_conversation_note:"Его ошибки уже доступны Mistake Memory и будущим занятиям.",
+correction:"Исправление",was:"Было",correct:"Правильно",natural:"Естественнее",
+real_title:"Мне нужно это сейчас",real_intro:"Опишите реальную ситуацию обычными словами. Language Teacher даст короткую фразу, поможет произнести её и предложит сохранить ситуацию для будущей практики.",
+what_say:"Что вам нужно сказать?",real_placeholder:"Например: под раковиной течёт вода, мне нужно объяснить это хозяину квартиры",get_phrase:"Получить фразу",preparing:"Готовлю…",
+phrase_error:"Не удалось подготовить фразу",listen:"Прослушать",saved:"Сохранено",save_practice:"Сохранить для практики",save_situation:"Сохранить ситуацию",
+saved_future:"✓ Сохранено для будущей практики",saved_future_note:"Ситуация уже доступна Session Engine, а фраза — Review/SRS.",continue_try:"Попробуйте продолжить",
+review_done:"На сегодня всё повторено",review_done_note:"Когда Learning Items станут готовы к повторению, они автоматически появятся здесь.",queue_empty:"Очередь пуста",
+queue_empty_note:"SRS не создаёт искусственные карточки — он работает только с вашим реальным учебным материалом.",in_queue:"в очереди",
+listen_phrase:"▶ Прослушать фразу",tts_unavailable:"Text-to-Speech недоступен на этом устройстве.",what_was_said:"ЧТО БЫЛО СКАЗАНО",answer:"ОТВЕТ",
+listen_again:"▶ Прослушать ещё раз",show_text_meaning:"Показать текст и смысл",show_answer:"Показать ответ",again:"Не понял",hard:"Частично",good:"Услышал",easy:"Легко",
+session_not_ready:"Занятие пока не готово",session_complete:"Занятие завершено",all_blocks_done:"Все {n} блоков выполнены. Результат сохранён локально.",
+listen_first:"Сначала прослушайте фразу без текста. Попробуйте понять её целиком или уловить ключевые слова.",show_text:"Показать текст",show_guide:"Показать ориентир",
+saving:"Сохраняю…",finish_session:"Завершить занятие",done_next:"Готово · дальше",
+pron_title:"Слушайте → говорите → слушайте себя",pron_intro:"Здесь нет искусственного pronunciation score. Распознавание речи проверяет только распознанные слова, а не фонемы, акцент или качество произношения.",
+reference_phrase:"ЭТАЛОННАЯ ФРАЗА",enter_phrase:"Введите короткую фразу для тренировки",listen_first_btn:"▶ Сначала послушать",
+step_listen:"Послушайте",step_listen_note:"Системный голос даёт эталон темпа и фразы.",step_record:"Скажите и запишите",step_record_note:"MediaRecorder сохраняет запись только локально.",
+step_self:"Прослушайте себя",step_self_note:"Сравните ритм, ударение, окончания и плавность.",step_words:"Проверьте понятность слов",step_words_note:"SpeechRecognition — дополнительная проверка, не оценка произношения.",
+how_practice:"КАК ТРЕНИРОВАТЬ",clarity_check:"ПРОВЕРКА ПОНЯТНОСТИ",browser_heard:"Что услышал браузер",recognition_unavailable:"SpeechRecognition недоступен — это нормально",
+recognize_phrase:"Распознать фразу",recognized:"РАСПОЗНАНО",text_match:"Совпадение распознанных слов: {n}%",text_match_exact:"Слова распознаны полностью",not_pron_score:"Это показатель совпадения текста, а не качества произношения.",
+recording_unavailable:"Запись голоса недоступна",recording_unavailable_note:"Этот браузер не поддерживает MediaRecorder или доступ к микрофону.",recording:"Запись идёт…",voice_practice:"Голосовая практика",stop:"■ Остановить",record:"● Записать",delete_record:"Удалить запись",seconds:"{n} сек.",
+teacher_title:"Короткое объяснение → практика → обратная связь",teacher_input:"Что вы хотите потренировать?",teacher_placeholder:"Например: хочу коротко потренировать порядок слов в реальном разговоре",
+teacher_hint:"Лучше одна конструкция за раз. Language Teacher не превращает этот экран в учебник грамматики.",teacher_generate:"Подготовить короткую практику",teacher_loading:"Готовлю структурированную практику…",teacher_error:"AI Teacher не смог подготовить ответ",
+from_practice:"From practice",waiting_data:"Waiting for data",ask_teacher:"Что попросить у учителя",better:"Лучше",corrections:"CORRECTIONS",
+library_title:"Язык, который уже стал вашим материалом",library_intro:"Здесь собраны выражения, известные ошибки и реальные ситуации из вашей практики. Материал возвращается в Review и будущие занятия.",
+expressions:"Выражения",active_mistakes:"Активные ошибки",situations:"Ситуации",due_review:"К повторению",usable_language:"Выражения и паттерны",
+mistake_return:"То, к чему стоит вернуться",real_situations:"Ваши жизненные ситуации",future_practice:"Будет использоваться в будущей практике",go_practice:"Перейти к практике",
+progress_title:"Что уже получается на практике",skills:"НАВЫКИ",current_picture:"Текущая картина",real_capabilities:"РЕАЛЬНЫЕ ВОЗМОЖНОСТИ",trained_do:"Что вы уже тренировались делать",
+open_library:"Открыть библиотеку",practice_source:"по практике",baseline:"стартовая оценка",strong:"Сильная сторона",confident:"Уверенно",developing:"Развивается",starting:"Начинается",no_data:"Нет данных",
+cap_good:"Уже практикуется",cap_dev:"Развивается",cap_none:"Ещё не практиковалось",
+backup_title:"Экспорт и восстановление",backup_export:"Экспортировать JSON",backup_restore:"Восстановить JSON",release_ready:"Готовность устройства",check:"Проверить",language_profiles:"Языковые профили",add_language:"+ Добавить",remove:"Удалить",ai_mode:"Режим AI",device_capabilities:"Возможности этого устройства",available:"Доступно",unavailable:"Недоступно",
+ui_language_hint_full:"Интерфейс приложения локализован для русского, английского и украинского. Учебный контент может оставаться на языке занятия.",
+today_reason:"ПОЧЕМУ ИМЕННО ЭТО",today_reason_title:"Фокус выбран по вашим данным",today_extra:"МОЖНО СДЕЛАТЬ ЕЩЁ",today_extra_title:"Короткая дополнительная практика",today_status:"СЕГОДНЯШНЕЕ СОСТОЯНИЕ",update:"↻ Обновления",active_language:"Активный язык"
+},
+en:{
+first_language:"Add a language first",back_practice:"Back to Practice",back_today:"Back to Today",you:"You",partner:"Partner",finish:"Finish",send:"Send",dictate:"🎙 Dictate",thinking:"Thinking of a reply…",reply_placeholder:"Answer in your own words…",
+conversation_pick:"Choose a situation",conversation_note:"You answer first. Corrections appear only after your reply and only when useful.",last_conversation:"Last conversation saved",last_conversation_note:"Its mistakes are already available to Mistake Memory and future sessions.",correction:"Correction",was:"Original",correct:"Correct",natural:"More natural",
+real_title:"I need this right now",real_intro:"Describe a real situation in ordinary words. Language Teacher gives you a short phrase, helps you practise it and lets you save the situation.",what_say:"What do you need to say?",real_placeholder:"For example: water is leaking under the sink and I need to explain it to my landlord",get_phrase:"Get a phrase",preparing:"Preparing…",phrase_error:"Could not prepare a phrase",listen:"Listen",saved:"Saved",save_practice:"Save for practice",save_situation:"Save situation",saved_future:"✓ Saved for future practice",saved_future_note:"The situation is available to Session Engine and the phrase to Review/SRS.",continue_try:"Try to continue",
+review_done:"Everything due today is reviewed",review_done_note:"Learning Items will appear here automatically when they become due.",queue_empty:"Queue is empty",queue_empty_note:"SRS uses only your real learning material; it does not invent cards.",in_queue:"in queue",listen_phrase:"▶ Listen to the phrase",tts_unavailable:"Text-to-Speech is unavailable on this device.",what_was_said:"WHAT WAS SAID",answer:"ANSWER",listen_again:"▶ Listen again",show_text_meaning:"Show text and meaning",show_answer:"Show answer",again:"Didn't understand",hard:"Partly",good:"Understood",easy:"Easy",
+session_not_ready:"Session is not ready yet",session_complete:"Session complete",all_blocks_done:"All {n} blocks are complete. The result was saved locally.",listen_first:"Listen first without seeing the text. Try to understand the whole phrase or catch key words.",show_text:"Show text",show_guide:"Show guide",saving:"Saving…",finish_session:"Finish session",done_next:"Done · next",
+pron_title:"Listen → speak → listen to yourself",pron_intro:"There is no fake pronunciation score here. Speech recognition only checks recognized words; it does not reliably assess phonemes, accent or pronunciation quality.",reference_phrase:"REFERENCE PHRASE",enter_phrase:"Enter a short phrase to practise",listen_first_btn:"▶ Listen first",
+step_listen:"Listen",step_listen_note:"The system voice gives you a reference for pace and phrasing.",step_record:"Say it and record",step_record_note:"MediaRecorder keeps the recording local to your device.",step_self:"Listen to yourself",step_self_note:"Compare rhythm, stress, endings and flow.",step_words:"Check word intelligibility",step_words_note:"SpeechRecognition is an optional text check, not pronunciation scoring.",
+how_practice:"HOW TO PRACTISE",clarity_check:"INTELLIGIBILITY CHECK",browser_heard:"What the browser heard",recognition_unavailable:"SpeechRecognition is unavailable — that is okay",recognize_phrase:"Recognize phrase",recognized:"RECOGNIZED",text_match:"Recognized word match: {n}%",text_match_exact:"All words were recognized",not_pron_score:"This is text matching, not a pronunciation score.",
+recording_unavailable:"Voice recording unavailable",recording_unavailable_note:"This browser does not support MediaRecorder or microphone access.",recording:"Recording…",voice_practice:"Voice practice",stop:"■ Stop",record:"● Record",delete_record:"Delete recording",seconds:"{n} sec.",
+teacher_title:"Short explanation → practice → feedback",teacher_input:"What would you like to practise?",teacher_placeholder:"For example: I want to practise word order in a real conversation",teacher_hint:"One structure at a time works best. This screen is not a grammar textbook.",teacher_generate:"Prepare short practice",teacher_loading:"Preparing structured practice…",teacher_error:"AI Teacher could not prepare a response",from_practice:"From practice",waiting_data:"Waiting for data",ask_teacher:"What to ask the teacher",better:"Better",corrections:"CORRECTIONS",
+library_title:"Language that has already become your material",library_intro:"Expressions, known mistakes and real situations from your practice live here and return in Review and future sessions.",expressions:"Expressions",active_mistakes:"Active mistakes",situations:"Situations",due_review:"Due for review",usable_language:"Expressions and patterns",mistake_return:"What is worth revisiting",real_situations:"Your real-life situations",future_practice:"Will be used in future practice",go_practice:"Go to Practice",
+progress_title:"What you can already do in practice",skills:"SKILLS",current_picture:"Current picture",real_capabilities:"REAL CAPABILITIES",trained_do:"What you have already practised doing",open_library:"Open library",practice_source:"from practice",baseline:"baseline",strong:"Strong area",confident:"Confident",developing:"Developing",starting:"Starting",no_data:"No data",cap_good:"Already practised",cap_dev:"Developing",cap_none:"Not practised yet",
+backup_title:"Export and restore",backup_export:"Export JSON",backup_restore:"Restore JSON",release_ready:"Device readiness",check:"Check",language_profiles:"Language profiles",add_language:"+ Add",remove:"Remove",ai_mode:"AI mode",device_capabilities:"Device capabilities",available:"Available",unavailable:"Unavailable",
+ui_language_hint_full:"The app interface is localized for Russian, English and Ukrainian. Learning content may remain in the language of the exercise.",
+today_reason:"WHY THIS",today_reason_title:"Focus selected from your data",today_extra:"YOU CAN ALSO",today_extra_title:"Short extra practice",today_status:"TODAY'S STATUS",update:"↻ Updates",active_language:"Active language"
+},
+uk:{
+first_language:"Спочатку додайте мову",back_practice:"Назад до практики",back_today:"Повернутися до Today",you:"Ви",partner:"Співрозмовник",finish:"Завершити",send:"Надіслати",dictate:"🎙 Продиктувати",thinking:"Формулюю відповідь…",reply_placeholder:"Відповідайте самостійно…",
+conversation_pick:"Виберіть ситуацію",conversation_note:"Спочатку відповідаєте ви. Виправлення з’являються лише після відповіді й тільки коли вони справді корисні.",last_conversation:"Останню розмову збережено",last_conversation_note:"Її помилки вже доступні Mistake Memory і майбутнім заняттям.",correction:"Виправлення",was:"Було",correct:"Правильно",natural:"Природніше",
+real_title:"Мені це потрібно зараз",real_intro:"Опишіть реальну ситуацію звичайними словами. Language Teacher дасть коротку фразу, допоможе потренувати її й запропонує зберегти ситуацію.",what_say:"Що вам потрібно сказати?",real_placeholder:"Наприклад: під раковиною тече вода, треба пояснити це власнику квартири",get_phrase:"Отримати фразу",preparing:"Готую…",phrase_error:"Не вдалося підготувати фразу",listen:"Прослухати",saved:"Збережено",save_practice:"Зберегти для практики",save_situation:"Зберегти ситуацію",saved_future:"✓ Збережено для майбутньої практики",saved_future_note:"Ситуація вже доступна Session Engine, а фраза — Review/SRS.",continue_try:"Спробуйте продовжити",
+review_done:"На сьогодні все повторено",review_done_note:"Learning Items автоматично з’являться тут, коли настане час повторення.",queue_empty:"Черга порожня",queue_empty_note:"SRS працює лише з вашим реальним навчальним матеріалом і не вигадує карток.",in_queue:"у черзі",listen_phrase:"▶ Прослухати фразу",tts_unavailable:"Text-to-Speech недоступний на цьому пристрої.",what_was_said:"ЩО БУЛО СКАЗАНО",answer:"ВІДПОВІДЬ",listen_again:"▶ Прослухати ще раз",show_text_meaning:"Показати текст і значення",show_answer:"Показати відповідь",again:"Не зрозумів",hard:"Частково",good:"Почув",easy:"Легко",
+session_not_ready:"Заняття ще не готове",session_complete:"Заняття завершено",all_blocks_done:"Усі {n} блоків виконано. Результат збережено локально.",listen_first:"Спочатку прослухайте фразу без тексту. Спробуйте зрозуміти її повністю або вловити ключові слова.",show_text:"Показати текст",show_guide:"Показати орієнтир",saving:"Зберігаю…",finish_session:"Завершити заняття",done_next:"Готово · далі",
+pron_title:"Слухайте → говоріть → слухайте себе",pron_intro:"Тут немає штучного pronunciation score. Розпізнавання мовлення перевіряє лише розпізнані слова, а не фонеми, акцент чи якість вимови.",reference_phrase:"ЕТАЛОННА ФРАЗА",enter_phrase:"Введіть коротку фразу для тренування",listen_first_btn:"▶ Спочатку послухати",
+step_listen:"Послухайте",step_listen_note:"Системний голос дає орієнтир темпу й фразування.",step_record:"Скажіть і запишіть",step_record_note:"MediaRecorder зберігає запис лише локально.",step_self:"Прослухайте себе",step_self_note:"Порівняйте ритм, наголос, закінчення й плавність.",step_words:"Перевірте зрозумілість слів",step_words_note:"SpeechRecognition — додаткова перевірка тексту, а не оцінка вимови.",
+how_practice:"ЯК ТРЕНУВАТИ",clarity_check:"ПЕРЕВІРКА ЗРОЗУМІЛОСТІ",browser_heard:"Що почув браузер",recognition_unavailable:"SpeechRecognition недоступний — це нормально",recognize_phrase:"Розпізнати фразу",recognized:"РОЗПІЗНАНО",text_match:"Збіг розпізнаних слів: {n}%",text_match_exact:"Усі слова розпізнано",not_pron_score:"Це показник збігу тексту, а не якості вимови.",
+recording_unavailable:"Запис голосу недоступний",recording_unavailable_note:"Цей браузер не підтримує MediaRecorder або доступ до мікрофона.",recording:"Триває запис…",voice_practice:"Голосова практика",stop:"■ Зупинити",record:"● Записати",delete_record:"Видалити запис",seconds:"{n} с",
+teacher_title:"Коротке пояснення → практика → зворотний зв’язок",teacher_input:"Що ви хочете потренувати?",teacher_placeholder:"Наприклад: хочу коротко потренувати порядок слів у реальній розмові",teacher_hint:"Краще одна конструкція за раз. Цей екран не є підручником граматики.",teacher_generate:"Підготувати коротку практику",teacher_loading:"Готую структуровану практику…",teacher_error:"AI Teacher не зміг підготувати відповідь",from_practice:"From practice",waiting_data:"Waiting for data",ask_teacher:"Що попросити у вчителя",better:"Краще",corrections:"ВИПРАВЛЕННЯ",
+library_title:"Мова, яка вже стала вашим матеріалом",library_intro:"Тут зібрані вирази, відомі помилки й реальні ситуації з вашої практики. Матеріал повертається в Review і майбутні заняття.",expressions:"Вирази",active_mistakes:"Активні помилки",situations:"Ситуації",due_review:"До повторення",usable_language:"Вирази й патерни",mistake_return:"До чого варто повернутися",real_situations:"Ваші життєві ситуації",future_practice:"Буде використано в майбутній практиці",go_practice:"Перейти до практики",
+progress_title:"Що вже виходить на практиці",skills:"НАВИЧКИ",current_picture:"Поточна картина",real_capabilities:"РЕАЛЬНІ МОЖЛИВОСТІ",trained_do:"Що ви вже тренувалися робити",open_library:"Відкрити бібліотеку",practice_source:"за практикою",baseline:"стартова оцінка",strong:"Сильна сторона",confident:"Впевнено",developing:"Розвивається",starting:"Починається",no_data:"Немає даних",cap_good:"Уже практикується",cap_dev:"Розвивається",cap_none:"Ще не практикувалося",
+backup_title:"Експорт і відновлення",backup_export:"Експортувати JSON",backup_restore:"Відновити JSON",release_ready:"Готовність пристрою",check:"Перевірити",language_profiles:"Мовні профілі",add_language:"+ Додати",remove:"Видалити",ai_mode:"Режим AI",device_capabilities:"Можливості цього пристрою",available:"Доступно",unavailable:"Недоступно",
+ui_language_hint_full:"Інтерфейс застосунку локалізовано російською, англійською та українською. Навчальний контент може залишатися мовою вправи.",
+today_reason:"ЧОМУ САМЕ ЦЕ",today_reason_title:"Фокус вибрано за вашими даними",today_extra:"МОЖНА ЩЕ",today_extra_title:"Коротка додаткова практика",today_status:"СТАН НА СЬОГОДНІ",update:"↻ Оновлення",active_language:"Активна мова"
+}
 };
 
-export function setLocale(locale){
-  currentLocale=SUPPORTED.has(locale)?locale:"ru";
-  if(typeof document!=="undefined")document.documentElement.lang=currentLocale;
-  return currentLocale;
-}
+export function setLocale(locale){currentLocale=SUPPORTED.has(locale)?locale:"ru";if(typeof document!=="undefined")document.documentElement.lang=currentLocale;return currentLocale;}
 export function getLocale(){return currentLocale;}
-export function t(key,params={}){
-  let value=DICTIONARY[currentLocale]?.[key]??DICTIONARY.ru[key]??key;
-  if(typeof value!=="string")return value;
-  return value.replace(/\{(\w+)\}/g,(_,name)=>String(params[name]??`{${name}}`));
-}
-export function translateGoal(id){return DICTIONARY[currentLocale]?.goals?.[id]??DICTIONARY.ru.goals[id]??id;}
-export function translateAssessment(id){return DICTIONARY[currentLocale]?.assessment?.[id]??DICTIONARY.ru.assessment[id]??id;}
+export function t(key,params={}){const value=D[currentLocale]?.[key]??D.ru[key]??key;return typeof value==="string"?value.replace(/\{(\w+)\}/g,(_,k)=>String(params[k]??`{${k}}`)):value;}
+export function translateGoal(id){const map={ru:{"everyday-life":"Повседневная жизнь","living-in-country":"Жизнь в стране",work:"Работа",travel:"Путешествия",friends:"Друзья и общение",reading:"Чтение"},en:{"everyday-life":"Everyday life","living-in-country":"Living in the country",work:"Work",travel:"Travel",friends:"Friends and communication",reading:"Reading"},uk:{"everyday-life":"Повсякденне життя","living-in-country":"Життя в країні",work:"Робота",travel:"Подорожі",friends:"Друзі та спілкування",reading:"Читання"}};return map[currentLocale]?.[id]??map.ru[id]??id;}
+export function translateAssessment(id){const map={ru:{starter:"Я почти ничего не знаю",words:"Я понимаю отдельные слова",simple:"Я могу строить простые предложения",conversational:"Я разговариваю, но часто ошибаюсь",comfortable:"Я уже довольно свободно говорю"},en:{starter:"I know almost nothing",words:"I understand individual words",simple:"I can build simple sentences",conversational:"I can speak, but I often make mistakes",comfortable:"I already speak quite comfortably"},uk:{starter:"Я майже нічого не знаю",words:"Я розумію окремі слова",simple:"Я можу будувати прості речення",conversational:"Я розмовляю, але часто помиляюся",comfortable:"Я вже досить вільно розмовляю"}};return map[currentLocale]?.[id]??map.ru[id]??id;}
