@@ -4,22 +4,30 @@
 - Phase 1 — Foundation ✅
 - Phase 2 — Language Profiles ✅
 - Phase 3 — Learning Data ✅
-- Next: Phase 4 — Review / SRS
+- Phase 4 — Review / SRS ✅
+- Next: Phase 5 — Session Engine
 
-## Phase 3
-Adds persistent domain models and repository access for:
-- `LearningItem`
-- `Mistake`
-- `Session`
-- `PersonalSituation`
-- `Progress`
+## Current version
+**0.4.0** — Phase 4 · Review / SRS
 
-Also adds an explicit IndexedDB migration pipeline (`schema v3`) and language-scoped data summaries.
+The current version, phase, build date and database schema are also visible in **Settings → Application**.
 
-No demo learning records are seeded: future learning content must come from real practice and Session Engine.
+## Phase 4
+Adds:
+- deterministic local SRS scheduling;
+- due-review queue;
+- weakest-memory-dimension exercise selection;
+- active recall review screen;
+- `Again / Hard / Good / Easy` ratings;
+- persisted review history;
+- per-dimension memory updates;
+- centralized application version metadata.
+
+SRS operates only on real `LearningItem` records. No artificial demo cards are seeded.
 
 ## Run
 ```bash
 python3 -m http.server 8080
 ```
+
 Open `http://localhost:8080`.

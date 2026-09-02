@@ -1,5 +1,37 @@
-const CACHE_NAME="language-teacher-shell-v3";
-const APP_SHELL=["./","./index.html","./manifest.webmanifest","./src/app/app.js","./src/app/router.js","./src/app/state.js","./src/language/language-catalog.js","./src/language/profile-engine.js","./src/learning/models.js","./src/learning/learning-repository.js","./src/ui/components/app-header.js","./src/ui/components/bottom-nav.js","./src/ui/components/language-onboarding.js","./src/ui/screens/today.js","./src/ui/screens/practice.js","./src/ui/screens/words.js","./src/ui/screens/progress.js","./src/ui/screens/settings.js","./src/ui/styles/tokens.css","./src/ui/styles/base.css","./src/ui/styles/layout.css","./src/ui/styles/components.css","./src/ui/styles/responsive.css","./src/storage/db.js","./src/storage/schema.js","./src/storage/migrations.js","./assets/icons/icon-192.png","./assets/icons/icon-512.png"];
-self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting())));
-self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request).then(r=>{if(!r||r.status!==200||r.type==="opaque")return r;const copy=r.clone();caches.open(CACHE_NAME).then(cache=>cache.put(e.request,copy));return r;}).catch(()=>caches.match("./index.html"))));});
+const CACHE_NAME="language-teacher-shell-v4";
+const APP_SHELL=[
+  "./","./index.html","./manifest.webmanifest",
+  "./src/app/app.js","./src/app/router.js","./src/app/state.js","./src/app/version.js",
+  "./src/language/language-catalog.js","./src/language/profile-engine.js",
+  "./src/learning/models.js","./src/learning/learning-repository.js",
+  "./src/learning/srs-engine.js","./src/learning/review-engine.js",
+  "./src/ui/components/app-header.js","./src/ui/components/bottom-nav.js","./src/ui/components/language-onboarding.js",
+  "./src/ui/screens/today.js","./src/ui/screens/practice.js","./src/ui/screens/review.js",
+  "./src/ui/screens/words.js","./src/ui/screens/progress.js","./src/ui/screens/settings.js",
+  "./src/ui/styles/tokens.css","./src/ui/styles/base.css","./src/ui/styles/layout.css",
+  "./src/ui/styles/components.css","./src/ui/styles/responsive.css","./src/ui/styles/review.css",
+  "./src/storage/db.js","./src/storage/schema.js","./src/storage/migrations.js",
+  "./assets/icons/icon-192.png","./assets/icons/icon-512.png"
+];
+
+self.addEventListener("install",e=>
+  e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()))
+);
+self.addEventListener("activate",e=>
+  e.waitUntil(
+    caches.keys()
+      .then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k))))
+      .then(()=>self.clients.claim())
+  )
+);
+self.addEventListener("fetch",e=>{
+  if(e.request.method!=="GET")return;
+  e.respondWith(
+    caches.match(e.request).then(c=>c||fetch(e.request).then(r=>{
+      if(!r||r.status!==200||r.type==="opaque")return r;
+      const copy=r.clone();
+      caches.open(CACHE_NAME).then(cache=>cache.put(e.request,copy));
+      return r;
+    }).catch(()=>caches.match("./index.html")))
+  );
+});
