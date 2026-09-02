@@ -1,11 +1,11 @@
 {
-  "latestVersion": "1.12.0",
-  "phase": "Phase 18.1 · Full Screen Localization",
+  "latestVersion": "1.13.0",
+  "phase": "Phase 19 · Final Polish / Release Candidate",
   "publishedAt": "2026-09-02",
   "changes": [
-    "Локализованы все основные учебные экраны для ru/en/uk.",
-    "Локализован Voice Recorder и оставшиеся Settings.",
-    "Учебный контент сохраняет язык упражнения.",
-    "Добавлен i18n coverage test."
+    "Runtime Release Check стал полноценной диагностикой PWA/offline/storage/speech/cloud setup.",
+    "Repository gate валидирует Service Worker APP_SHELL, manifest и public deployment config.",
+    "Settings показывает подробные blocking/optional результаты.",
+    "Добавлен Release Candidate checklist для финального глубокого аудита."
   ]
 }

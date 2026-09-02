@@ -1,7 +1,7 @@
-const CACHE_NAME="language-teacher-shell-v24";
+const CACHE_NAME="language-teacher-shell-v25";
 const APP_SHELL=[
 "./","./index.html","./manifest.webmanifest","./update.json","./deployment-config.js",
-"./src/app/app.js","./src/app/router.js","./src/app/state.js","./src/app/version.js","./src/app/update-manager.js","./src/app/release-check.js","./src/i18n/i18n.js",
+"./src/app/app.js","./src/app/router.js","./src/app/state.js","./src/app/version.js","./src/app/update-manager.js","./src/app/release-check.js","./src/app/release-check-summary.js","./src/i18n/i18n.js",
 "./src/language/language-catalog.js","./src/language/profile-engine.js","./src/learning/models.js","./src/learning/learning-repository.js","./src/learning/mistake-engine.js","./src/learning/grammar-focus.js","./src/learning/srs-engine.js","./src/learning/review-engine.js","./src/learning/session-engine.js","./src/learning/progress-engine.js","./src/learning/conversation-engine.js","./src/learning/real-life-engine.js",
 "./src/ai/provider.js","./src/ai/local-demo-provider.js","./src/ai/proxy-provider.js","./src/ai/proxy-config.js","./src/ai/context-builder.js","./src/ai/response-contract.js","./src/ai/response-parser.js","./src/ai/teacher-engine.js",
 "./src/speech/speech-provider.js","./src/speech/browser-speech-provider.js","./src/speech/recorder.js","./src/speech/synthesis.js","./src/speech/recognition.js","./src/speech/pronunciation.js","./src/speech/speech-manager.js",
