@@ -1,12 +1,12 @@
-export const APP_VERSION = "1.0.0";
-export const APP_PHASE = "Phase 10 · MVP Release";
+export const APP_VERSION = "1.1.0";
+export const APP_PHASE = "Phase 11 · Secure Cloud AI";
 export const APP_BUILD_DATE = "2026-09-02";
 export const DB_SCHEMA_VERSION = 3;
 
 export const RELEASE_NOTES = [
-  "Language Teacher достиг версии 1.0.0 — первый production-ready MVP.",
-  "Добавлены экспорт и восстановление локальных данных через JSON backup.",
-  "Добавлена строгая проверка backup перед импортом.",
-  "Улучшены accessibility, keyboard focus и глобальные error states.",
-  "В Settings добавлен Release Check для offline/storage/speech/update готовности."
+  "Добавлен настоящий AI backend/proxy через OpenAI Responses API.",
+  "API-ключ остаётся только на сервере; локальные идентификаторы удаляются из контекста.",
+  "В Settings добавлен сохраняемый выбор Local demo или Secure cloud AI.",
+  "Исправлен переход «Готово · дальше» и повторное создание Today Session.",
+  "Добавлены автоматические проверки Session Engine и AI proxy contract."
 ];

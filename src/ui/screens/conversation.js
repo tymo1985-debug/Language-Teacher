@@ -73,8 +73,9 @@ function scenarioPicker(active,state){
       <p class="eyebrow">${active.flag} CONVERSATION</p>
       <h2>Выберите ситуацию</h2>
       <p class="muted">
-        Диалог сохраняется локально. Local demo provider проверяет механику multi-turn;
-        настоящий облачный собеседник подключается через тот же AI Provider layer.
+        ${state.ai?.remote
+          ?"Диалог сохраняется локально; для ответа учебный контекст отправляется вашему защищённому proxy."
+          :"Диалог сохраняется локально. Local demo provider проверяет механику multi-turn и не является настоящим AI."}
       </p>
     </div>
 

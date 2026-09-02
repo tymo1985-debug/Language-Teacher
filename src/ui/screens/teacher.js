@@ -16,8 +16,9 @@ export function renderTeacher(state){
       <p class="eyebrow">${active.flag} AI TEACHER</p>
       <h2>Структурированный учитель, а не чат-окно</h2>
       <p class="muted">
-        Phase 7 проверяет полный AI-контракт. Сейчас активен безопасный local demo provider:
-        он не отправляет данные в интернет и не является настоящей языковой моделью.
+        ${ai.remote
+          ?"Активен защищённый backend proxy. Структурированный ответ проверяется перед показом и записью в learning loop."
+          :"Активен безопасный local demo provider: он не отправляет данные в интернет и не является настоящей языковой моделью."}
       </p>
     </div>
 
@@ -30,7 +31,9 @@ export function renderTeacher(state){
         <span class="pill">${ai.remote?"Remote":"Local"}</span>
       </div>
       <p class="muted">
-        Настоящий облачный AI позже подключается через защищённый backend proxy. API-ключи в PWA не хранятся.
+        ${ai.remote
+          ?"Учебный контекст отправляется вашему proxy; локальные идентификаторы не передаются модели."
+          :"Выбрать настоящий AI можно в Settings после запуска backend proxy."}
       </p>
     </article>
 

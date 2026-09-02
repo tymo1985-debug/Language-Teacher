@@ -1,11 +1,11 @@
 {
-  "latestVersion": "1.0.0",
-  "phase": "Phase 10 · MVP Release",
+  "latestVersion": "1.1.0",
+  "phase": "Phase 11 · Secure Cloud AI",
   "publishedAt": "2026-09-02",
   "changes": [
-    "Первый MVP release: Language Teacher 1.0.0.",
-    "Backup/restore локальных учебных данных.",
-    "Accessibility и улучшенные error states.",
-    "Release Check в Settings и укреплённый offline/update flow."
+    "Настоящий AI backend/proxy через OpenAI Responses API.",
+    "Сохраняемый выбор Local demo или Secure cloud AI.",
+    "Безопасная фильтрация локальных идентификаторов перед отправкой модели.",
+    "Исправление перехода «Готово · дальше» в Today Session."
   ]
 }

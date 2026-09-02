@@ -133,9 +133,10 @@ export async function ensureTodaySession(languageProfile,targetDuration=10){
   if(!languageProfile?.languageId)return null;
   const sessions=await listSessions(languageProfile.languageId);
   const key=todayKey();
-  const existing=[...sessions]
-    .reverse()
-    .find(session=>session.dayKey===key&&session.status!=="completed");
+  const todaySessions=sessions
+    .filter(session=>session.dayKey===key&&session.mode!=="conversation")
+    .sort((a,b)=>(b.updatedAt??b.createdAt??"").localeCompare(a.updatedAt??a.createdAt??""));
+  const existing=todaySessions.find(session=>session.status==="completed")??todaySessions[0];
 
   if(existing)return existing;
 
@@ -143,21 +144,25 @@ export async function ensureTodaySession(languageProfile,targetDuration=10){
   return saveSession(draft);
 }
 
-export async function advanceSession(session){
+export function completeCurrentSessionBlock(session,completedAt=new Date().toISOString()){
   const index=session.blocks.findIndex(block=>block.status!=="completed");
   if(index<0)return session;
 
   const blocks=session.blocks.map((block,i)=>
-    i===index?{...block,status:"completed",completedAt:new Date().toISOString()}:block
+    i===index?{...block,status:"completed",completedAt}:block
   );
 
   const completed=blocks.every(block=>block.status==="completed");
-  return saveSession({
+  return {
     ...session,
     blocks,
     status:completed?"completed":"in-progress",
-    completedAt:completed?new Date().toISOString():null
-  });
+    completedAt:completed?completedAt:null
+  };
+}
+
+export async function advanceSession(session){
+  return saveSession(completeCurrentSessionBlock(session));
 }
 
 export function currentSessionBlock(session){

@@ -74,7 +74,20 @@ export function renderSettings(state){
     <article class="info-card">
       <p class="eyebrow">AI TEACHER</p>
       <h3>${escapeHtml(ai.providerLabel??"Local architecture demo")}</h3>
-      <p class="muted">Настоящий AI подключается только через безопасный backend proxy; API-ключи не хранятся в PWA.</p>
+      <label class="field-label" for="ai-provider">Режим AI</label>
+      <select id="ai-provider" class="select-control">
+        ${(ai.providers??[]).map(provider=>`
+          <option value="${escapeHtml(provider.id)}" ${provider.id===ai.providerId?"selected":""}>
+            ${escapeHtml(provider.label)}
+          </option>
+        `).join("")}
+      </select>
+      <p class="muted">
+        ${ai.remote
+          ?"Запросы отправляются вашему backend proxy. Он удаляет локальные идентификаторы перед обращением к модели."
+          :"Данные остаются на устройстве. Demo проверяет механику, но не является языковой моделью."}
+      </p>
+      <small class="muted">API-ключ хранится только на сервере и никогда не попадает в PWA.</small>
     </article>
 
     <article class="info-card">

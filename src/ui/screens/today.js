@@ -17,12 +17,15 @@ export function renderToday(state){
   const active=state.languageProfiles.find(x=>x.languageId===state.activeLanguageId)??state.languageProfiles[0];
   const session=state.todaySession;
   const progress=sessionProgress(session);
+  const completed=session?.status==="completed";
 
   return `<section class="stack-lg">
     <article class="hero-card">
       <div>
         <p class="eyebrow">${active.flag} TODAY</p>
-        <h2>${session?"Сегодняшняя практика готова.":"Готовим сегодняшнюю практику…"}</h2>
+        <h2>${completed
+          ?"Сегодняшняя практика завершена."
+          :session?"Сегодняшняя практика готова.":"Готовим сегодняшнюю практику…"}</h2>
         <p class="muted">
           ${session
             ? `${session.blocks.length} коротких блоков · около ${session.targetDuration} минут · ${progress.percent}% выполнено.`
@@ -31,7 +34,7 @@ export function renderToday(state){
       </div>
       ${session?`
         <button class="primary-button" type="button" data-route="session">
-          ${progress.completed?"Продолжить занятие":"Начать занятие"}
+          ${completed?"Посмотреть результат":progress.completed?"Продолжить занятие":"Начать занятие"}
         </button>
       `:""}
     </article>

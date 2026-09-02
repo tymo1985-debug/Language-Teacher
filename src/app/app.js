@@ -25,7 +25,9 @@ import {
   cancelVoiceRecording,clearVoiceRecording,getSpeechCapabilities,recognizeOnce,
   speakReference,startVoiceRecording,stopReferenceSpeech,stopVoiceRecording
 } from "../speech/speech-manager.js";
-import {getActiveAIProvider,requestTeacherResponse} from "../ai/teacher-engine.js";
+import {
+  getActiveAIProvider,listAIProviders,requestTeacherResponse,setAIProvider
+} from "../ai/teacher-engine.js";
 import {renderHeader} from "../ui/components/app-header.js";
 import {renderBottomNav} from "../ui/components/bottom-nav.js";
 import {renderLanguageOnboarding} from "../ui/components/language-onboarding.js";
@@ -417,13 +419,34 @@ function bind(){
   });
 
   document.querySelector("#session-next")?.addEventListener("click",async()=>{
-    const session=getState().todaySession;
-    if(!session)return;
+    const current=getState();
+    const session=current.todaySession;
+    if(!session||current.sessionAdvancing)return;
 
-    handleVoiceClear();
-    const updated=await advanceSession(session);
-    setState({todaySession:updated});
-    await refreshLearningData(updated.languageId);
+    setState({sessionAdvancing:true});
+    try{
+      const updated=await advanceSession(session);
+      handleVoiceClear();
+
+      const [learningSummary,sessions]=await Promise.all([
+        getLearningSummary(updated.languageId),
+        listSessions(updated.languageId)
+      ]);
+      const sessionHistory=sessions
+        .filter(item=>item.status==="completed")
+        .sort((a,b)=>(b.completedAt??"").localeCompare(a.completedAt??""))
+        .slice(0,10);
+
+      setState({
+        todaySession:updated,
+        learningSummary,
+        sessionHistory,
+        sessionAdvancing:false
+      });
+    }catch(error){
+      setState({sessionAdvancing:false});
+      updateOperation(error?.message??"Не удалось сохранить прогресс занятия.","error");
+    }
   });
 
   document.querySelector("#review-reveal")?.addEventListener("click",()=>
@@ -576,6 +599,24 @@ function bind(){
     await setSetting("reduceMotion",e.target.checked);
   };
 
+  const aiProvider=document.querySelector("#ai-provider");
+  if(aiProvider)aiProvider.onchange=async e=>{
+    try{
+      setAIProvider(e.target.value);
+      const provider=getActiveAIProvider();
+      updateAI({
+        providerId:provider.id,
+        providerLabel:provider.label,
+        remote:Boolean(provider.getCapabilities().remote),
+        response:null,
+        error:null
+      });
+      await setSetting("aiProviderId",provider.id);
+    }catch(error){
+      updateOperation(error?.message??"Не удалось выбрать AI provider.","error");
+    }
+  };
+
   document.querySelectorAll("[data-update-dismiss]").forEach(el=>
     el.addEventListener("click",dismissUpdateNotice)
   );
@@ -618,17 +659,24 @@ async function bootstrap(){
     await openDatabase();
     updateSpeech({capabilities:getSpeechCapabilities()});
 
-    const provider=getActiveAIProvider();
-    updateAI({
-      providerId:provider.id,
-      providerLabel:provider.label,
-      remote:Boolean(provider.getCapabilities().remote)
-    });
-
     const user=await ensureLocalUser();
     const profiles=await listLanguageProfiles();
     const interfaceLanguage=await getSetting("interfaceLanguage");
     const reduceMotion=await getSetting("reduceMotion");
+    const savedAIProviderId=await getSetting("aiProviderId");
+
+    try{
+      setAIProvider(savedAIProviderId??"local-demo");
+    }catch{
+      setAIProvider("local-demo");
+    }
+    const provider=getActiveAIProvider();
+    updateAI({
+      providerId:provider.id,
+      providerLabel:provider.label,
+      remote:Boolean(provider.getCapabilities().remote),
+      providers:listAIProviders()
+    });
 
     let active=user.activeLanguageId;
     if(!profiles.some(p=>p.languageId===active)){

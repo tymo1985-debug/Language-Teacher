@@ -65,8 +65,11 @@ export function renderSession(state){
 
       ${voiceBlock?renderVoiceRecorder(state,{compact:true}):""}
 
-      <button class="primary-button session-next" type="button" id="session-next">
-        ${progress.completed+1===progress.total?"Завершить занятие":"Готово · дальше"}
+      <button class="primary-button session-next" type="button" id="session-next"
+        ${state.sessionAdvancing?'disabled aria-busy="true"':""}>
+        ${state.sessionAdvancing
+          ?"Сохраняю…"
+          :progress.completed+1===progress.total?"Завершить занятие":"Готово · дальше"}
       </button>
     </article>
 

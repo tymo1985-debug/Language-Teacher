@@ -15,6 +15,7 @@ const state={
   reviewQueue:[],
   reviewAnswerVisible:false,
   todaySession:null,
+  sessionAdvancing:false,
   sessionHistory:[],
   updateNotice:null,
   speech:{
@@ -25,7 +26,7 @@ const state={
   ai:{
     providerId:"local-demo",
     providerLabel:"Local architecture demo",
-    remote:false,input:"",loading:false,response:null,error:null
+    remote:false,input:"",loading:false,response:null,error:null,providers:[]
   },
   conversation:{
     session:null,input:"",loading:false,error:null,lastCompleted:null
