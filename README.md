@@ -10,30 +10,34 @@
 - Phase 7 — AI Teacher ✅
 - Phase 8 — Conversation ✅
 - Phase 9 — Real Life ✅
-- Next: Phase 10 — Polish / Release
+- Phase 10 — Polish / Release ✅
 
 ## Current version
-**0.9.0** — Phase 9 · Real Life
+**1.0.0** — MVP Release
 
-## Phase 9
-Adds the key “I need this now” workflow:
+Language Teacher now has a complete local-first MVP architecture covering language profiles, learning data, SRS, sessions, speech, AI provider abstraction, conversation, Real Life practice, updates, backup/restore and offline operation.
 
-```text
-real situation
-→ useful phrase
-→ listen / speak
-→ mini-dialog
-→ save PersonalSituation
-→ save situation-expression
-→ future Session + Review
-```
+## Backup
+Settings → Backup:
+- export `language-teacher-backup.json`;
+- validate and restore a backup;
+- audio blobs are intentionally excluded from the MVP backup.
 
-The local demo provider contains a small set of offline practical templates for supported languages. Arbitrary high-quality language generation remains the job of a real cloud AI connected through the existing secure proxy/provider architecture.
+## Release Check
+Settings → Release Check verifies the most important runtime capabilities:
+- secure context;
+- Service Worker;
+- IndexedDB;
+- database opening;
+- voice-recording availability/fallback;
+- network/offline state.
 
-## Privacy
-A Real Life description stays local unless a future remote AI provider is explicitly used.
+## Important AI status
+The frontend contains a local deterministic demo provider and a secure proxy-provider contract. A real cloud LLM backend is **not** bundled in this MVP, and no API keys are stored in the PWA.
 
 ## Run
 ```bash
 python3 -m http.server 8080
 ```
+
+Open `http://localhost:8080`.

@@ -1,7 +1,7 @@
 import {startRouter} from "./router.js";
 import {
   getState,setState,subscribe,updateSettings,updateSpeech,updateAI,
-  updateConversation,updateRealLife
+  updateConversation,updateRealLife,updateOperation
 } from "./state.js";
 import {ensureLocalUser,getRecord,getSetting,openDatabase,putRecord,setSetting} from "../storage/db.js";
 import {DEFAULT_USER_ID,STORES} from "../storage/schema.js";
@@ -14,6 +14,9 @@ import {
   continueConversation,finishConversation,getActiveConversation,startConversation
 } from "../learning/conversation-engine.js";
 import {prepareRealLifeHelp,saveRealLifeMaterial} from "../learning/real-life-engine.js";
+import {downloadBackup} from "../storage/backup.js";
+import {readBackupFile,restoreBackup} from "../storage/restore.js";
+import {runReleaseCheck} from "./release-check.js";
 import {
   applyWaitingUpdate,checkRemoteUpdate,getReleaseNotice,hasWaitingUpdate,
   markCurrentVersionSeen,watchServiceWorker
@@ -27,6 +30,7 @@ import {renderHeader} from "../ui/components/app-header.js";
 import {renderBottomNav} from "../ui/components/bottom-nav.js";
 import {renderLanguageOnboarding} from "../ui/components/language-onboarding.js";
 import {renderUpdateNotice} from "../ui/components/update-notice.js";
+import {renderOperationNotice} from "../ui/components/operation-notice.js";
 import {renderToday} from "../ui/screens/today.js";
 import {renderPractice} from "../ui/screens/practice.js";
 import {renderSession} from "../ui/screens/session.js";
@@ -50,10 +54,11 @@ function render(state){
   const screen=screens[state.route]??renderToday;
   app.innerHTML=`
     ${renderHeader(state)}
-    <main class="app-main">${screen(state)}</main>
+    <main class="app-main" id="main-content" tabindex="-1">${screen(state)}</main>
     ${renderBottomNav(state.route)}
     ${renderLanguageOnboarding(state)}
     ${renderUpdateNotice(state)}
+    ${renderOperationNotice(state)}
   `;
   bind();
 
@@ -514,6 +519,50 @@ function bind(){
     }
   });
 
+  document.querySelector("#backup-export")?.addEventListener("click",async()=>{
+    try{
+      await downloadBackup();
+      updateOperation("Backup успешно экспортирован.","success");
+    }catch(error){
+      updateOperation(error?.message??"Не удалось создать backup.","error");
+    }
+  });
+
+  document.querySelector("#backup-import")?.addEventListener("change",async event=>{
+    const file=event.target.files?.[0];
+    if(!file)return;
+
+    try{
+      const parsed=await readBackupFile(file);
+      const confirmed=confirm(
+        "Восстановление заменит текущие локальные данные Language Teacher. Продолжить?"
+      );
+      if(!confirmed){
+        event.target.value="";
+        return;
+      }
+
+      await restoreBackup(parsed);
+      updateOperation("Backup восстановлен. Приложение будет перезагружено.","success");
+      setTimeout(()=>location.reload(),700);
+    }catch(error){
+      updateOperation(error?.message??"Не удалось восстановить backup.","error");
+      event.target.value="";
+    }
+  });
+
+  document.querySelector("#release-check-run")?.addEventListener("click",async()=>{
+    try{
+      setState({releaseCheck:await runReleaseCheck()});
+    }catch(error){
+      updateOperation(error?.message??"Release Check завершился ошибкой.","error");
+    }
+  });
+
+  document.querySelector("#operation-dismiss")?.addEventListener("click",()=>{
+    updateOperation(null);
+  });
+
   const il=document.querySelector("#interface-language");
   if(il)il.onchange=async e=>{
     updateSettings({interfaceLanguage:e.target.value});
@@ -639,6 +688,16 @@ addEventListener("beforeunload",()=>{
   cancelVoiceRecording();
   clearVoiceRecording();
   stopReferenceSpeech();
+});
+
+addEventListener("error",event=>{
+  const message=event.error?.message||event.message;
+  if(message)updateOperation(`Ошибка приложения: ${message}`,"error");
+});
+
+addEventListener("unhandledrejection",event=>{
+  const message=event.reason?.message||String(event.reason??"Неизвестная ошибка");
+  updateOperation(`Ошибка операции: ${message}`,"error");
 });
 
 bootstrap();

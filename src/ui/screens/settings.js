@@ -28,6 +28,33 @@ export function renderSettings(state){
 
     <article class="info-card">
       <div class="section-heading">
+        <div><p class="eyebrow">BACKUP</p><h3>Экспорт и восстановление</h3></div>
+      </div>
+      <p class="muted">
+        Backup содержит основные локальные учебные данные. Аудиозаписи в MVP backup не включаются.
+      </p>
+      <div class="backup-actions">
+        <button type="button" class="secondary-button" id="backup-export">Экспортировать JSON</button>
+        <label class="secondary-button backup-file-label">
+          Восстановить JSON
+          <input id="backup-import" type="file" accept="application/json,.json" hidden>
+        </label>
+      </div>
+      <small class="muted">Импорт заменяет текущие локальные данные после подтверждения.</small>
+    </article>
+
+    <article class="info-card">
+      <div class="section-heading">
+        <div><p class="eyebrow">RELEASE CHECK</p><h3>Готовность устройства</h3></div>
+        <button type="button" class="secondary-button compact" id="release-check-run">Проверить</button>
+      </div>
+      ${state.releaseCheck?renderReleaseCheck(state.releaseCheck):`
+        <p class="muted">Проверяет IndexedDB, Service Worker, secure context и доступные fallback-механизмы.</p>
+      `}
+    </article>
+
+    <article class="info-card">
+      <div class="section-heading">
         <div><p class="eyebrow">LANGUAGES</p><h3>Языковые профили</h3></div>
         <button type="button" class="secondary-button compact" id="add-language-settings">+ Добавить</button>
       </div>
@@ -47,10 +74,7 @@ export function renderSettings(state){
     <article class="info-card">
       <p class="eyebrow">AI TEACHER</p>
       <h3>${escapeHtml(ai.providerLabel??"Local architecture demo")}</h3>
-      <p class="muted">
-        Текущий provider локальный и демонстрационный. Для настоящего AI предусмотрен безопасный backend proxy;
-        API-ключи никогда не должны храниться в PWA.
-      </p>
+      <p class="muted">Настоящий AI подключается только через безопасный backend proxy; API-ключи не хранятся в PWA.</p>
     </article>
 
     <article class="info-card">
@@ -79,10 +103,32 @@ export function renderSettings(state){
   </section>`;
 }
 
+function renderReleaseCheck(result){
+  return `<div class="release-check ${result.passed?"is-passed":"is-failed"}">
+    <strong>${result.passed?"✓ Основные проверки пройдены":"Требуется внимание"}</strong>
+    <div class="release-check-list">
+      ${result.checks.map(check=>`
+        <div class="release-check-row">
+          <span>${check.ok?"✓":check.optional?"○":"!"}</span>
+          <strong>${escapeHtml(check.label)}</strong>
+          <small>${escapeHtml(check.detail)}</small>
+        </div>
+      `).join("")}
+    </div>
+  </div>`;
+}
+
 function speechStatus(label,available){
-  return `<div class="speech-setting-row"><span>${available?"✓":"—"}</span><strong>${label}</strong><small>${available?"Доступно":"Недоступно"}</small></div>`;
+  return `<div class="speech-setting-row">
+    <span>${available?"✓":"—"}</span>
+    <strong>${label}</strong>
+    <small>${available?"Доступно":"Недоступно"}</small>
+  </div>`;
 }
 
 function escapeHtml(value=""){
-  return String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+  return String(value??"")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;");
 }

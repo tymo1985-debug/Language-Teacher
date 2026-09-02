@@ -31,12 +31,13 @@ const state={
     session:null,input:"",loading:false,error:null,lastCompleted:null
   },
   realLife:{
-    input:"",
-    loading:false,
-    result:null,
-    saved:null,
-    error:null
-  }
+    input:"",loading:false,result:null,saved:null,error:null
+  },
+  operation:{
+    message:null,
+    kind:"info"
+  },
+  releaseCheck:null
 };
 
 export const getState=()=>structuredClone(state);
@@ -68,6 +69,11 @@ export function updateConversation(patch){
 
 export function updateRealLife(patch){
   state.realLife={...state.realLife,...patch};
+  listeners.forEach(fn=>fn(getState()));
+}
+
+export function updateOperation(message,kind="info"){
+  state.operation={message,kind};
   listeners.forEach(fn=>fn(getState()));
 }
 

@@ -1,11 +1,11 @@
 {
-  "latestVersion": "0.9.0",
-  "phase": "Phase 9 · Real Life",
+  "latestVersion": "1.0.0",
+  "phase": "Phase 10 · MVP Release",
   "publishedAt": "2026-09-02",
   "changes": [
-    "Режим «Мне нужно это сейчас» для реальных жизненных ситуаций.",
-    "Сохранение PersonalSituation и полезного situation-expression.",
-    "Быстрая голосовая практика фразы.",
-    "Сохранённый материал автоматически возвращается в будущих занятиях."
+    "Первый MVP release: Language Teacher 1.0.0.",
+    "Backup/restore локальных учебных данных.",
+    "Accessibility и улучшенные error states.",
+    "Release Check в Settings и укреплённый offline/update flow."
   ]
 }
