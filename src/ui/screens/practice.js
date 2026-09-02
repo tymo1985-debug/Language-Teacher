@@ -7,10 +7,17 @@ export function renderPractice(state){
     <div class="page-intro">
       <p class="eyebrow">PRACTICE</p>
       <h2>Выберите короткую практику</h2>
-      <p class="muted">Conversation теперь связывает AI Teacher, Speech и Mistake Memory в один поток.</p>
+      <p class="muted">Real Life превращает сегодняшнюю реальную потребность в будущий учебный материал.</p>
     </div>
 
     <div class="card-grid">
+      <button class="feature-card real-life-feature" type="button" data-route="real-life">
+        <span class="feature-card-title">Real Life</span>
+        <span class="feature-card-text">Мне нужно это сейчас — получить фразу, произнести и сохранить.</span>
+        <span class="pill">Практика сейчас</span>
+        <span class="feature-card-arrow">→</span>
+      </button>
+
       <button class="feature-card" type="button" data-route="session" ${session?"":"disabled"}>
         <span class="feature-card-title">Today Session</span>
         <span class="feature-card-text">Рекомендованное занятие из ваших текущих данных.</span>
@@ -45,16 +52,6 @@ export function renderPractice(state){
         <span class="pill">${recording?"Микрофон поддерживается":"Проверьте устройство"}</span>
         <span class="feature-card-arrow">→</span>
       </button>
-
-      ${placeholder("Real Life","Мне нужно это сейчас")}
     </div>
   </section>`;
-}
-
-function placeholder(title,text){
-  return `<article class="feature-card is-static">
-    <span class="feature-card-title">${title}</span>
-    <span class="feature-card-text">${text}</span>
-    <span class="pill">Следующая фаза</span>
-  </article>`;
 }

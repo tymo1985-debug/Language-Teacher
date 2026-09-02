@@ -1,5 +1,8 @@
 import {startRouter} from "./router.js";
-import {getState,setState,subscribe,updateSettings,updateSpeech,updateAI,updateConversation} from "./state.js";
+import {
+  getState,setState,subscribe,updateSettings,updateSpeech,updateAI,
+  updateConversation,updateRealLife
+} from "./state.js";
 import {ensureLocalUser,getRecord,getSetting,openDatabase,putRecord,setSetting} from "../storage/db.js";
 import {DEFAULT_USER_ID,STORES} from "../storage/schema.js";
 import {createLanguageProfile,listLanguageProfiles,removeLanguageProfile} from "../language/profile-engine.js";
@@ -10,6 +13,7 @@ import {advanceSession,ensureTodaySession} from "../learning/session-engine.js";
 import {
   continueConversation,finishConversation,getActiveConversation,startConversation
 } from "../learning/conversation-engine.js";
+import {prepareRealLifeHelp,saveRealLifeMaterial} from "../learning/real-life-engine.js";
 import {
   applyWaitingUpdate,checkRemoteUpdate,getReleaseNotice,hasWaitingUpdate,
   markCurrentVersionSeen,watchServiceWorker
@@ -29,6 +33,7 @@ import {renderSession} from "../ui/screens/session.js";
 import {renderSpeech} from "../ui/screens/speech.js";
 import {renderTeacher} from "../ui/screens/teacher.js";
 import {renderConversation} from "../ui/screens/conversation.js";
+import {renderRealLife} from "../ui/screens/real-life.js";
 import {renderReview} from "../ui/screens/review.js";
 import {renderWords} from "../ui/screens/words.js";
 import {renderProgress} from "../ui/screens/progress.js";
@@ -37,8 +42,8 @@ import {renderSettings} from "../ui/screens/settings.js";
 const app=document.querySelector("#app");
 const screens={
   today:renderToday,practice:renderPractice,session:renderSession,speech:renderSpeech,
-  teacher:renderTeacher,conversation:renderConversation,review:renderReview,
-  words:renderWords,progress:renderProgress,settings:renderSettings
+  teacher:renderTeacher,conversation:renderConversation,"real-life":renderRealLife,
+  review:renderReview,words:renderWords,progress:renderProgress,settings:renderSettings
 };
 
 function render(state){
@@ -51,6 +56,7 @@ function render(state){
     ${renderUpdateNotice(state)}
   `;
   bind();
+
   if(state.route==="conversation"){
     requestAnimationFrame(()=>{
       const stream=document.querySelector("#conversation-stream");
@@ -66,11 +72,13 @@ async function refreshSessionData(languageId=getState().activeLanguageId){
   if(!languageId){setState({todaySession:null,sessionHistory:[]});return;}
   const profile=getState().languageProfiles.find(p=>p.languageId===languageId);
   if(!profile)return;
+
   const todaySession=await ensureTodaySession(profile,10);
   const sessionHistory=(await listSessions(languageId))
     .filter(session=>session.status==="completed")
     .sort((a,b)=>(b.completedAt??"").localeCompare(a.completedAt??""))
     .slice(0,10);
+
   setState({todaySession,sessionHistory});
 }
 
@@ -99,9 +107,12 @@ async function refreshLearningData(languageId=getState().activeLanguageId){
 
   const profile=getState().languageProfiles.find(p=>p.languageId===languageId);
   await ensureProgress(languageId,profile?.skills??{});
+
   const [learningSummary,reviewQueue]=await Promise.all([
-    getLearningSummary(languageId),buildReviewQueue(languageId)
+    getLearningSummary(languageId),
+    buildReviewQueue(languageId)
   ]);
+
   setState({learningSummary,reviewQueue,reviewAnswerVisible:false});
   await Promise.all([refreshSessionData(languageId),refreshConversation(languageId)]);
 }
@@ -109,11 +120,14 @@ async function refreshLearningData(languageId=getState().activeLanguageId){
 async function setActiveLanguage(languageId){
   const user=await getRecord(STORES.users,DEFAULT_USER_ID);
   if(!user)return;
+
   const next={...user,activeLanguageId:languageId,updatedAt:new Date().toISOString()};
   await putRecord(STORES.users,next);
   setState({user:next,activeLanguageId:languageId});
+
   updateAI({response:null,error:null});
   updateConversation({session:null,input:"",error:null});
+  updateRealLife({input:"",result:null,saved:null,error:null});
   await refreshLearningData(languageId);
 }
 
@@ -121,6 +135,7 @@ async function refreshProfiles(preferred=null){
   const profiles=await listLanguageProfiles();
   let active=preferred||getState().activeLanguageId;
   if(!profiles.some(p=>p.languageId===active))active=profiles[0]?.languageId??null;
+
   setState({languageProfiles:profiles,activeLanguageId:active});
 
   if(active)await setActiveLanguage(active);
@@ -145,7 +160,10 @@ function dismissUpdateNotice(){
 
 function activeSpeechLang(){
   const id=getState().activeLanguageId;
-  return ({cs:"cs-CZ",en:"en-US",de:"de-DE",pl:"pl-PL",uk:"uk-UA",sk:"sk-SK",es:"es-ES",fr:"fr-FR",it:"it-IT"})[id]??id??"";
+  return ({
+    cs:"cs-CZ",en:"en-US",de:"de-DE",pl:"pl-PL",uk:"uk-UA",
+    sk:"sk-SK",es:"es-ES",fr:"fr-FR",it:"it-IT"
+  })[id]??id??"";
 }
 
 async function handleVoiceStart(){
@@ -161,15 +179,27 @@ async function handleVoiceStart(){
 async function handleVoiceStop(){
   try{
     const result=await stopVoiceRecording();
-    updateSpeech({recording:false,recordingUrl:result?.url??null,recordingDurationMs:result?.durationMs??0,error:null});
+    updateSpeech({
+      recording:false,
+      recordingUrl:result?.url??null,
+      recordingDurationMs:result?.durationMs??0,
+      error:null
+    });
   }catch(error){
     updateSpeech({recording:false,error:error?.message??"Не удалось сохранить запись."});
   }
 }
 
 function handleVoiceClear(){
-  cancelVoiceRecording();clearVoiceRecording();
-  updateSpeech({recording:false,recordingUrl:null,recordingDurationMs:0,transcript:"",error:null});
+  cancelVoiceRecording();
+  clearVoiceRecording();
+  updateSpeech({
+    recording:false,
+    recordingUrl:null,
+    recordingDurationMs:0,
+    transcript:"",
+    error:null
+  });
 }
 
 async function sendConversation(){
@@ -177,7 +207,6 @@ async function sendConversation(){
   const profile=state.languageProfiles.find(p=>p.languageId===state.activeLanguageId);
   const conversation=state.conversation.session;
   const input=state.conversation.input.trim();
-
   if(!profile||!conversation||!input)return;
 
   try{
@@ -189,22 +218,33 @@ async function sendConversation(){
     });
 
     updateConversation({
-      session:result.conversation,
-      input:"",
-      loading:false,
-      error:null
+      session:result.conversation,input:"",loading:false,error:null
     });
 
-    // New mistakes from conversation immediately become visible to Session Engine.
     await refreshLearningData(profile.languageId);
+
     updateConversation({
-      session:result.conversation,
-      input:"",
-      loading:false,
-      error:null
+      session:result.conversation,input:"",loading:false,error:null
     });
   }catch(error){
     updateConversation({loading:false,error:error?.message??"Не удалось продолжить разговор."});
+  }
+}
+
+async function generateRealLife(){
+  const state=getState();
+  const profile=state.languageProfiles.find(p=>p.languageId===state.activeLanguageId);
+  if(!profile)return;
+
+  try{
+    updateRealLife({loading:true,result:null,saved:null,error:null});
+    const result=await prepareRealLifeHelp({
+      languageProfile:profile,
+      description:state.realLife.input
+    });
+    updateRealLife({loading:false,result,saved:null,error:null});
+  }catch(error){
+    updateRealLife({loading:false,error:error?.message??"Не удалось подготовить фразу."});
   }
 }
 
@@ -220,7 +260,8 @@ function bind(){
   });
 
   ["add-language-top","add-language-hero","add-language-inline","add-language-settings"].forEach(id=>{
-    const el=document.querySelector("#"+id);if(el)el.onclick=openModal;
+    const el=document.querySelector("#"+id);
+    if(el)el.onclick=openModal;
   });
 
   const switcher=document.querySelector("#language-switcher");
@@ -231,36 +272,52 @@ function bind(){
     setActiveLanguage(ps[(i+1)%ps.length].languageId);
   };
 
-  document.querySelectorAll("[data-language-select]").forEach(el=>el.onclick=()=>setActiveLanguage(el.dataset.languageSelect));
+  document.querySelectorAll("[data-language-select]").forEach(el=>
+    el.onclick=()=>setActiveLanguage(el.dataset.languageSelect)
+  );
+
   document.querySelectorAll("[data-language-remove]").forEach(el=>{
     el.onclick=async()=>{
-      const id=el.dataset.languageRemove,p=getState().languageProfiles.find(x=>x.languageId===id);
-      if(confirm(`Удалить профиль ${p?.name??id}?`)){await removeLanguageProfile(id);await refreshProfiles();}
+      const id=el.dataset.languageRemove;
+      const p=getState().languageProfiles.find(x=>x.languageId===id);
+      if(confirm(`Удалить профиль ${p?.name??id}?`)){
+        await removeLanguageProfile(id);
+        await refreshProfiles();
+      }
     };
   });
 
-  const close=document.querySelector("#close-language-modal"),cancel=document.querySelector("#cancel-language-modal");
-  if(close)close.onclick=closeModal;if(cancel)cancel.onclick=closeModal;
+  const close=document.querySelector("#close-language-modal");
+  const cancel=document.querySelector("#cancel-language-modal");
+  if(close)close.onclick=closeModal;
+  if(cancel)cancel.onclick=closeModal;
+
   const modal=document.querySelector("#language-modal");
-  if(modal)modal.onclick=e=>{if(e.target.id==="language-modal")closeModal();};
+  if(modal)modal.onclick=e=>{
+    if(e.target.id==="language-modal")closeModal();
+  };
 
   const form=document.querySelector("#language-form");
   if(form)form.onsubmit=async e=>{
     e.preventDefault();
-    const fd=new FormData(form),languageId=String(fd.get("languageId")||"");
+    const fd=new FormData(form);
+    const languageId=String(fd.get("languageId")||"");
     if(!languageId)return;
+
     const goals=fd.getAll("goals").map(String);
     const assessmentId=String(fd.get("assessment")||"starter");
     const sa=SELF_ASSESSMENT.find(x=>x.id===assessmentId)??SELF_ASSESSMENT[0];
     const profile=await createLanguageProfile({languageId,goals,selfAssessment:sa});
     await ensureProgress(languageId,profile.skills);
-    closeModal();await refreshProfiles(languageId);
+    closeModal();
+    await refreshProfiles(languageId);
   };
 
   document.querySelectorAll("[data-conversation-scenario]").forEach(el=>{
     el.addEventListener("click",async()=>{
       const profile=getState().languageProfiles.find(p=>p.languageId===getState().activeLanguageId);
       if(!profile)return;
+
       try{
         const session=await startConversation({
           languageProfile:profile,
@@ -292,11 +349,8 @@ function bind(){
     try{
       updateConversation({error:null});
       const result=await recognizeOnce({lang:activeSpeechLang()});
-      if(result.transcript){
-        updateConversation({input:result.transcript});
-      }else{
-        updateConversation({error:"Речь не распознана. Можно ответить текстом."});
-      }
+      if(result.transcript)updateConversation({input:result.transcript});
+      else updateConversation({error:"Речь не распознана. Можно ответить текстом."});
     }catch(error){
       updateConversation({error:error?.message??"Голосовой ввод недоступен."});
     }
@@ -305,29 +359,83 @@ function bind(){
   document.querySelector("#conversation-finish")?.addEventListener("click",async()=>{
     const conversation=getState().conversation.session;
     if(!conversation)return;
+
     const completed=await finishConversation(conversation);
     updateConversation({
       session:null,input:"",loading:false,error:null,lastCompleted:completed
     });
+
     await refreshLearningData(completed.languageId);
+
     updateConversation({
       session:null,input:"",loading:false,error:null,lastCompleted:completed
     });
   });
 
+  const realLifeInput=document.querySelector("#real-life-input");
+  if(realLifeInput){
+    realLifeInput.addEventListener("input",e=>{
+      updateRealLife({input:e.target.value,result:null,saved:null,error:null});
+    });
+  }
+
+  document.querySelector("#real-life-generate")?.addEventListener("click",generateRealLife);
+
+  document.querySelector("#real-life-dictate")?.addEventListener("click",async()=>{
+    try{
+      updateRealLife({error:null});
+      const result=await recognizeOnce({lang:"ru-RU"});
+      if(result.transcript)updateRealLife({input:result.transcript,result:null,saved:null});
+      else updateRealLife({error:"Речь не распознана. Опишите ситуацию текстом."});
+    }catch(error){
+      updateRealLife({error:error?.message??"Голосовой ввод недоступен."});
+    }
+  });
+
+  document.querySelector("#real-life-save")?.addEventListener("click",async()=>{
+    const state=getState();
+    const profile=state.languageProfiles.find(p=>p.languageId===state.activeLanguageId);
+    if(!profile||!state.realLife.result)return;
+
+    try{
+      const saved=await saveRealLifeMaterial({
+        languageProfile:profile,
+        result:state.realLife.result
+      });
+
+      updateRealLife({saved,error:null});
+      await refreshLearningData(profile.languageId);
+      updateRealLife({saved,error:null});
+    }catch(error){
+      updateRealLife({error:error?.message??"Не удалось сохранить материал."});
+    }
+  });
+
   document.querySelector("#session-next")?.addEventListener("click",async()=>{
-    const session=getState().todaySession;if(!session)return;
+    const session=getState().todaySession;
+    if(!session)return;
+
     handleVoiceClear();
     const updated=await advanceSession(session);
     setState({todaySession:updated});
     await refreshLearningData(updated.languageId);
   });
 
-  document.querySelector("#review-reveal")?.addEventListener("click",()=>setState({reviewAnswerVisible:true}));
+  document.querySelector("#review-reveal")?.addEventListener("click",()=>
+    setState({reviewAnswerVisible:true})
+  );
+
   document.querySelectorAll("[data-review-rating]").forEach(el=>{
     el.onclick=async()=>{
-      const current=getState().reviewQueue?.[0];if(!current)return;
-      await recordReview({item:current.item,rating:el.dataset.reviewRating,dimension:current.exercise.dimension});
+      const current=getState().reviewQueue?.[0];
+      if(!current)return;
+
+      await recordReview({
+        item:current.item,
+        rating:el.dataset.reviewRating,
+        dimension:current.exercise.dimension
+      });
+
       await refreshLearningData(current.item.languageId);
     };
   });
@@ -338,18 +446,30 @@ function bind(){
 
   document.querySelectorAll("[data-speak-text]").forEach(el=>{
     el.addEventListener("click",()=>{
-      try{speakReference(el.dataset.speakText,{lang:activeSpeechLang(),rate:.92});}
-      catch(error){updateSpeech({error:error?.message??"Не удалось воспроизвести эталон."});}
+      try{
+        speakReference(el.dataset.speakText,{lang:activeSpeechLang(),rate:.92});
+      }catch(error){
+        updateSpeech({error:error?.message??"Не удалось воспроизвести эталон."});
+      }
     });
   });
 
   const referenceInput=document.querySelector("#speech-reference-text");
-  if(referenceInput)referenceInput.addEventListener("input",e=>updateSpeech({referenceText:e.target.value}));
+  if(referenceInput){
+    referenceInput.addEventListener("input",e=>
+      updateSpeech({referenceText:e.target.value})
+    );
+  }
 
   document.querySelector("#speech-speak")?.addEventListener("click",()=>{
-    const text=document.querySelector("#speech-reference-text")?.value??"";if(!text)return;
-    try{speakReference(text,{lang:activeSpeechLang(),rate:.92});}
-    catch(error){updateSpeech({error:error?.message??"Text-to-Speech недоступен."});}
+    const text=document.querySelector("#speech-reference-text")?.value??"";
+    if(!text)return;
+
+    try{
+      speakReference(text,{lang:activeSpeechLang(),rate:.92});
+    }catch(error){
+      updateSpeech({error:error?.message??"Text-to-Speech недоступен."});
+    }
   });
 
   document.querySelector("#speech-recognize")?.addEventListener("click",async()=>{
@@ -357,23 +477,37 @@ function bind(){
       updateSpeech({transcript:"",error:null});
       const result=await recognizeOnce({lang:activeSpeechLang()});
       updateSpeech({transcript:result.transcript||"Ничего не распознано."});
-    }catch(error){updateSpeech({error:error?.message??"Распознавание речи не удалось."});}
+    }catch(error){
+      updateSpeech({error:error?.message??"Распознавание речи не удалось."});
+    }
   });
 
   const teacherInput=document.querySelector("#teacher-input");
-  if(teacherInput)teacherInput.addEventListener("input",e=>updateAI({input:e.target.value}));
+  if(teacherInput){
+    teacherInput.addEventListener("input",e=>updateAI({input:e.target.value}));
+  }
 
   document.querySelector("#teacher-generate")?.addEventListener("click",async()=>{
-    const profile=getState().languageProfiles.find(p=>p.languageId===getState().activeLanguageId);
+    const profile=getState().languageProfiles.find(p=>
+      p.languageId===getState().activeLanguageId
+    );
     if(!profile)return;
+
     try{
       updateAI({loading:true,response:null,error:null});
       const result=await requestTeacherResponse({
-        languageProfile:profile,mode:"practice",userInput:getState().ai.input
+        languageProfile:profile,
+        mode:"practice",
+        userInput:getState().ai.input
       });
+
       updateAI({
-        loading:false,response:result.response,providerId:result.provider.id,
-        providerLabel:result.provider.label,remote:Boolean(result.provider.capabilities.remote),error:null
+        loading:false,
+        response:result.response,
+        providerId:result.provider.id,
+        providerLabel:result.provider.label,
+        remote:Boolean(result.provider.capabilities.remote),
+        error:null
       });
     }catch(error){
       updateAI({loading:false,error:error?.message??"AI Teacher request failed."});
@@ -381,7 +515,11 @@ function bind(){
   });
 
   const il=document.querySelector("#interface-language");
-  if(il)il.onchange=async e=>{updateSettings({interfaceLanguage:e.target.value});await setSetting("interfaceLanguage",e.target.value);};
+  if(il)il.onchange=async e=>{
+    updateSettings({interfaceLanguage:e.target.value});
+    await setSetting("interfaceLanguage",e.target.value);
+  };
+
   const rm=document.querySelector("#reduce-motion");
   if(rm)rm.onchange=async e=>{
     updateSettings({reduceMotion:e.target.checked});
@@ -389,8 +527,13 @@ function bind(){
     await setSetting("reduceMotion",e.target.checked);
   };
 
-  document.querySelectorAll("[data-update-dismiss]").forEach(el=>el.addEventListener("click",dismissUpdateNotice));
-  document.querySelector("#update-apply")?.addEventListener("click",()=>applyWaitingUpdate());
+  document.querySelectorAll("[data-update-dismiss]").forEach(el=>
+    el.addEventListener("click",dismissUpdateNotice)
+  );
+
+  document.querySelector("#update-apply")?.addEventListener("click",()=>
+    applyWaitingUpdate()
+  );
 }
 
 async function initializeUpdates(){
@@ -402,7 +545,8 @@ async function initializeUpdates(){
     setState({
       updateNotice:{
         ...(current??{
-          kind:"available",title:"Доступно обновление приложения",
+          kind:"available",
+          title:"Доступно обновление приложения",
           changes:["Новая версия загружена и готова к установке."]
         }),
         serviceWorkerReady:true
@@ -411,7 +555,12 @@ async function initializeUpdates(){
   }).catch(error=>console.debug("Service worker update watch unavailable:",error));
 
   const remoteNotice=await checkRemoteUpdate();
-  if(remoteNotice)setState({updateNotice:{...remoteNotice,serviceWorkerReady:hasWaitingUpdate()}});
+  if(remoteNotice){
+    setState({
+      updateNotice:{...remoteNotice,serviceWorkerReady:hasWaitingUpdate()}
+    });
+  }
+
   navigator.serviceWorker?.addEventListener("controllerchange",()=>location.reload());
 }
 
@@ -433,7 +582,9 @@ async function bootstrap(){
     const reduceMotion=await getSetting("reduceMotion");
 
     let active=user.activeLanguageId;
-    if(!profiles.some(p=>p.languageId===active))active=profiles[0]?.languageId??null;
+    if(!profiles.some(p=>p.languageId===active)){
+      active=profiles[0]?.languageId??null;
+    }
 
     const settings={
       ...getState().settings,
@@ -442,9 +593,14 @@ async function bootstrap(){
     };
 
     document.documentElement.dataset.reduceMotion=settings.reduceMotion?"true":"false";
+
     setState({
-      settings,storageReady:true,user,languageProfiles:profiles,
-      activeLanguageId:active,onboardingOpen:profiles.length===0
+      settings,
+      storageReady:true,
+      user,
+      languageProfiles:profiles,
+      activeLanguageId:active,
+      onboardingOpen:profiles.length===0
     });
 
     if(active){
@@ -476,9 +632,13 @@ addEventListener("online",async()=>{
   const notice=await checkRemoteUpdate();
   if(notice)setState({updateNotice:notice});
 });
+
 addEventListener("offline",()=>setState({online:false}));
+
 addEventListener("beforeunload",()=>{
-  cancelVoiceRecording();clearVoiceRecording();stopReferenceSpeech();
+  cancelVoiceRecording();
+  clearVoiceRecording();
+  stopReferenceSpeech();
 });
 
 bootstrap();

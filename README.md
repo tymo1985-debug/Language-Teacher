@@ -9,35 +9,29 @@
 - Phase 6 — Speech ✅
 - Phase 7 — AI Teacher ✅
 - Phase 8 — Conversation ✅
-- Next: Phase 9 — Real Life
+- Phase 9 — Real Life ✅
+- Next: Phase 10 — Polish / Release
 
 ## Current version
-**0.8.0** — Phase 8 · Conversation
+**0.9.0** — Phase 9 · Real Life
 
-## Phase 8
-Adds:
-- multi-turn Conversation Mode;
-- scenario selection;
-- persisted conversation turns;
-- text responses;
-- optional voice dictation through the existing Speech layer;
-- AI Teacher context with recent conversation turns;
-- corrections shown only after the user's response;
-- Mistake Memory integration;
-- repeated-mistake counting;
-- automatic reuse of conversation mistakes by future Today Sessions.
+## Phase 9
+Adds the key “I need this now” workflow:
 
-The current local AI provider is still a deterministic architecture demo. A real conversational model can later replace it through the existing secure provider/proxy interface.
-
-## Learning loop
 ```text
-Conversation response
-→ structured correction
-→ Mistake Memory
-→ repeated count / pattern
-→ Session Engine
-→ future focused practice
+real situation
+→ useful phrase
+→ listen / speak
+→ mini-dialog
+→ save PersonalSituation
+→ save situation-expression
+→ future Session + Review
 ```
+
+The local demo provider contains a small set of offline practical templates for supported languages. Arbitrary high-quality language generation remains the job of a real cloud AI connected through the existing secure proxy/provider architecture.
+
+## Privacy
+A Real Life description stays local unless a future remote AI provider is explicitly used.
 
 ## Run
 ```bash

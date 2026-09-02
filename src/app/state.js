@@ -28,11 +28,14 @@ const state={
     remote:false,input:"",loading:false,response:null,error:null
   },
   conversation:{
-    session:null,
+    session:null,input:"",loading:false,error:null,lastCompleted:null
+  },
+  realLife:{
     input:"",
     loading:false,
-    error:null,
-    lastCompleted:null
+    result:null,
+    saved:null,
+    error:null
   }
 };
 
@@ -60,6 +63,11 @@ export function updateAI(patch){
 
 export function updateConversation(patch){
   state.conversation={...state.conversation,...patch};
+  listeners.forEach(fn=>fn(getState()));
+}
+
+export function updateRealLife(patch){
+  state.realLife={...state.realLife,...patch};
   listeners.forEach(fn=>fn(getState()));
 }
 

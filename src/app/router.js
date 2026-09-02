@@ -1,5 +1,5 @@
 const ROUTES=new Set([
-  "today","practice","session","speech","teacher","conversation",
+  "today","practice","session","speech","teacher","conversation","real-life",
   "review","words","progress","settings"
 ]);
 
