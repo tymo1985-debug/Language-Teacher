@@ -1,12 +1,13 @@
 export function renderPractice(state){
   const due=state.learningSummary?.dueReviews??0;
   const session=state.todaySession;
+  const recording=state.speech?.capabilities?.recording;
 
   return `<section class="stack-lg">
     <div class="page-intro">
       <p class="eyebrow">PRACTICE</p>
       <h2>Выберите короткую практику</h2>
-      <p class="muted">Session Engine и Review уже работают локально. Остальные режимы подключаются по следующим фазам.</p>
+      <p class="muted">Session, Review и базовая Speech Lab уже работают локально.</p>
     </div>
 
     <div class="card-grid">
@@ -24,9 +25,15 @@ export function renderPractice(state){
         <span class="feature-card-arrow" aria-hidden="true">→</span>
       </button>
 
-      ${placeholder("Speaking","Разговорная практика")}
+      <button class="feature-card" type="button" data-route="speech">
+        <span class="feature-card-title">Speech Lab</span>
+        <span class="feature-card-text">Запишите голос, прослушайте себя и используйте системный эталонный голос.</span>
+        <span class="pill">${recording?"Микрофон поддерживается":"Проверьте устройство"}</span>
+        <span class="feature-card-arrow" aria-hidden="true">→</span>
+      </button>
+
       ${placeholder("Listening","Понимание живой речи")}
-      ${placeholder("Pronunciation","Произношение и интонация")}
+      ${placeholder("Conversation","Полноценный разговорный режим")}
       ${placeholder("Real Life","Мне нужно это сейчас")}
     </div>
   </section>`;

@@ -6,31 +6,29 @@
 - Phase 3 — Learning Data ✅
 - Phase 4 — Review / SRS ✅
 - Phase 5 — Session Engine ✅
-- Next: Phase 6 — Speech
+- Phase 6 — Speech ✅
+- Next: Phase 7 — AI Teacher
 
 ## Current version
-**0.5.0** — Phase 5 · Session Engine
+**0.6.0** — Phase 6 · Speech
 
-## Phase 5
+## Phase 6
 Adds:
-- local adaptive Session Engine;
-- Today session generated from profile, due reviews, mistakes, situations and existing Learning Items;
-- structured training blocks;
-- Session screen;
-- block completion and persisted session history;
-- in-app update notifications;
-- remote `update.json` version check;
-- service-worker update-ready prompt;
-- short release notes after a newly installed version.
+- replaceable `SpeechProvider` abstraction;
+- browser provider implementation;
+- microphone recording through `MediaRecorder`;
+- immediate local playback of the user's recording;
+- browser `speechSynthesis` reference audio;
+- optional one-shot browser speech recognition;
+- feature detection and graceful fallbacks;
+- Speech Lab;
+- voice recording embedded into speech-oriented Session blocks;
+- device Speech capabilities in Settings.
 
-The Session Engine has no AI dependency. It deliberately uses stored/local data first.
+Browser SpeechRecognition is deliberately optional and is not used as a pronunciation score.
 
-## Updates
-Starting with 0.5.0, the app can:
-1. show “What’s new” after a version changes;
-2. check `update.json` for a newer published version;
-3. detect when a new service worker is ready;
-4. let the user apply the waiting update from the in-app notice.
+## Privacy
+Microphone access is requested only when the user presses Record. Phase 6 recordings are kept only in the current browser session as local Blob URLs and are not uploaded.
 
 ## Run
 ```bash

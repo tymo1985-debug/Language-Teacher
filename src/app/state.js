@@ -22,7 +22,21 @@ const state={
   todaySession:null,
   sessionHistory:[],
   updateNotice:null,
-  updateRegistration:null
+  updateRegistration:null,
+  speech:{
+    capabilities:{
+      recording:false,
+      playback:false,
+      synthesis:false,
+      recognition:false
+    },
+    recording:false,
+    recordingUrl:null,
+    recordingDurationMs:0,
+    referenceText:"",
+    transcript:"",
+    error:null
+  }
 };
 
 export const getState=()=>structuredClone(state);
@@ -34,6 +48,11 @@ export function setState(patch){
 
 export function updateSettings(patch){
   state.settings={...state.settings,...patch};
+  listeners.forEach(fn=>fn(getState()));
+}
+
+export function updateSpeech(patch){
+  state.speech={...state.speech,...patch};
   listeners.forEach(fn=>fn(getState()));
 }
 

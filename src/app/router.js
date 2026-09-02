@@ -1,5 +1,5 @@
 const ROUTES=new Set([
-  "today","practice","session","review","words","progress","settings"
+  "today","practice","session","speech","review","words","progress","settings"
 ]);
 
 function routeFromHash(){

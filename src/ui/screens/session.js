@@ -1,4 +1,7 @@
 import {currentSessionBlock,sessionProgress} from "../../learning/session-engine.js";
+import {renderVoiceRecorder} from "../components/voice-recorder.js";
+
+const VOICE_TYPES=new Set(["SPEAK","RESPOND","CORRECTION","RECALL"]);
 
 export function renderSession(state){
   const active=state.languageProfiles.find(p=>p.languageId===state.activeLanguageId);
@@ -29,6 +32,8 @@ export function renderSession(state){
     </section>`;
   }
 
+  const voiceBlock=VOICE_TYPES.has(block.type);
+
   return `<section class="session-shell">
     <div class="session-topline">
       <button class="text-button" type="button" data-route="today">← Today</button>
@@ -44,16 +49,21 @@ export function renderSession(state){
       <h2>${escapeHtml(block.title)}</h2>
       <p class="session-prompt">${escapeHtml(block.prompt)}</p>
 
-      ${block.cue?`
-        <div class="session-cue">${escapeHtml(block.cue)}</div>
-      `:""}
+      ${block.cue?`<div class="session-cue">${escapeHtml(block.cue)}</div>`:""}
 
       ${block.expectedAnswer?`
         <details class="session-answer">
           <summary>Показать ориентир</summary>
           <p>${escapeHtml(block.expectedAnswer)}</p>
+          ${state.speech?.capabilities?.synthesis?`
+            <button type="button" class="text-button speech-reference-button" data-speak-text="${escapeAttr(block.expectedAnswer)}">
+              ▶ Прослушать ориентир
+            </button>
+          `:""}
         </details>
       `:""}
+
+      ${voiceBlock?renderVoiceRecorder(state,{compact:true}):""}
 
       <button class="primary-button session-next" type="button" id="session-next">
         ${progress.completed+1===progress.total?"Завершить занятие":"Готово · дальше"}
@@ -61,7 +71,7 @@ export function renderSession(state){
     </article>
 
     <p class="muted session-note">
-      Phase 5 работает полностью локально. AI и анализ ответа будут подключены позже.
+      Запись остаётся локальной в текущей сессии интерфейса. Автоматическая оценка произношения ещё не выполняется.
     </p>
   </section>`;
 }
@@ -74,3 +84,4 @@ function escapeHtml(value=""){
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
 }
+function escapeAttr(value=""){return escapeHtml(value);}

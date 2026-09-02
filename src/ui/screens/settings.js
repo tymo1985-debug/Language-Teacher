@@ -1,6 +1,8 @@
 import {APP_VERSION,APP_PHASE,APP_BUILD_DATE,DB_SCHEMA_VERSION} from "../../app/version.js";
 
 export function renderSettings(state){
+  const caps=state.speech?.capabilities??{};
+
   return `<section class="stack-lg">
     <div class="page-intro">
       <p class="eyebrow">LOCAL FIRST</p>
@@ -31,10 +33,7 @@ export function renderSettings(state){
 
     <article class="info-card">
       <div class="section-heading">
-        <div>
-          <p class="eyebrow">LANGUAGES</p>
-          <h3>Языковые профили</h3>
-        </div>
+        <div><p class="eyebrow">LANGUAGES</p><h3>Языковые профили</h3></div>
         <button type="button" class="secondary-button compact" id="add-language-settings">+ Добавить</button>
       </div>
       ${state.languageProfiles.length?`
@@ -50,13 +49,24 @@ export function renderSettings(state){
       `:'<p class="muted">Пока нет добавленных языков.</p>'}
     </article>
 
+    <article class="info-card">
+      <p class="eyebrow">SPEECH</p>
+      <h3>Возможности этого устройства</h3>
+      <div class="speech-settings-grid">
+        ${speechStatus("Запись голоса",caps.recording)}
+        ${speechStatus("Воспроизведение",caps.playback)}
+        ${speechStatus("Text-to-Speech",caps.synthesis)}
+        ${speechStatus("Распознавание речи",caps.recognition)}
+      </div>
+      <p class="muted version-help">
+        Распознавание речи необязательно: при его отсутствии MediaRecorder и локальное прослушивание продолжают работать.
+      </p>
+    </article>
+
     <article class="info-card version-card">
       <p class="eyebrow">APPLICATION</p>
       <div class="version-line">
-        <div>
-          <h3>Language Teacher ${APP_VERSION}</h3>
-          <p class="muted">${APP_PHASE}</p>
-        </div>
+        <div><h3>Language Teacher ${APP_VERSION}</h3><p class="muted">${APP_PHASE}</p></div>
         <span class="pill">v${APP_VERSION}</span>
       </div>
       <div class="version-meta">
@@ -64,9 +74,6 @@ export function renderSettings(state){
         <span>Database schema: v${DB_SCHEMA_VERSION}</span>
         <span>Update check: ${state.online?"online":"offline"}</span>
       </div>
-      <p class="muted version-help">
-        Начиная с версии 0.5.0 приложение автоматически проверяет наличие новой версии и показывает краткое описание изменений.
-      </p>
     </article>
 
     <article class="info-card">
@@ -75,4 +82,8 @@ export function renderSettings(state){
       <p class="muted">Данные остаются local-first и разделены по языковым профилям.</p>
     </article>
   </section>`;
+}
+
+function speechStatus(label,available){
+  return `<div class="speech-setting-row"><span>${available?"✓":"—"}</span><strong>${label}</strong><small>${available?"Доступно":"Недоступно"}</small></div>`;
 }

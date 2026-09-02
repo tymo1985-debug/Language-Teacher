@@ -1,5 +1,5 @@
 import {startRouter} from "./router.js";
-import {getState,setState,subscribe,updateSettings} from "./state.js";
+import {getState,setState,subscribe,updateSettings,updateSpeech} from "./state.js";
 import {ensureLocalUser,getRecord,getSetting,openDatabase,putRecord,setSetting} from "../storage/db.js";
 import {DEFAULT_USER_ID,STORES} from "../storage/schema.js";
 import {createLanguageProfile,listLanguageProfiles,removeLanguageProfile} from "../language/profile-engine.js";
@@ -14,6 +14,16 @@ import {
   markCurrentVersionSeen,
   watchServiceWorker
 } from "./update-manager.js";
+import {
+  cancelVoiceRecording,
+  clearVoiceRecording,
+  getSpeechCapabilities,
+  recognizeOnce,
+  speakReference,
+  startVoiceRecording,
+  stopReferenceSpeech,
+  stopVoiceRecording
+} from "../speech/speech-manager.js";
 import {renderHeader} from "../ui/components/app-header.js";
 import {renderBottomNav} from "../ui/components/bottom-nav.js";
 import {renderLanguageOnboarding} from "../ui/components/language-onboarding.js";
@@ -21,6 +31,7 @@ import {renderUpdateNotice} from "../ui/components/update-notice.js";
 import {renderToday} from "../ui/screens/today.js";
 import {renderPractice} from "../ui/screens/practice.js";
 import {renderSession} from "../ui/screens/session.js";
+import {renderSpeech} from "../ui/screens/speech.js";
 import {renderReview} from "../ui/screens/review.js";
 import {renderWords} from "../ui/screens/words.js";
 import {renderProgress} from "../ui/screens/progress.js";
@@ -31,6 +42,7 @@ const screens={
   today:renderToday,
   practice:renderPractice,
   session:renderSession,
+  speech:renderSpeech,
   review:renderReview,
   words:renderWords,
   progress:renderProgress,
@@ -57,16 +69,13 @@ async function refreshSessionData(languageId=getState().activeLanguageId){
     setState({todaySession:null,sessionHistory:[]});
     return;
   }
-
   const profile=getState().languageProfiles.find(p=>p.languageId===languageId);
   if(!profile)return;
-
   const todaySession=await ensureTodaySession(profile,10);
   const sessionHistory=(await listSessions(languageId))
     .filter(session=>session.status==="completed")
     .sort((a,b)=>(b.completedAt??"").localeCompare(a.completedAt??""))
     .slice(0,10);
-
   setState({todaySession,sessionHistory});
 }
 
@@ -113,11 +122,9 @@ async function refreshProfiles(preferred=null){
   const profiles=await listLanguageProfiles();
   const state=getState();
   let active=preferred||state.activeLanguageId;
-
   if(!profiles.some(p=>p.languageId===active)){
     active=profiles[0]?.languageId??null;
   }
-
   setState({languageProfiles:profiles,activeLanguageId:active});
 
   if(active){
@@ -139,6 +146,64 @@ async function dismissUpdateNotice(){
     await markCurrentVersionSeen();
   }
   setState({updateNotice:null});
+}
+
+function activeSpeechLang(){
+  const id=getState().activeLanguageId;
+  const map={
+    cs:"cs-CZ",
+    en:"en-US",
+    de:"de-DE",
+    pl:"pl-PL",
+    uk:"uk-UA",
+    sk:"sk-SK",
+    es:"es-ES",
+    fr:"fr-FR",
+    it:"it-IT"
+  };
+  return map[id]??id??"";
+}
+
+async function handleVoiceStart(){
+  try{
+    clearVoiceRecording();
+    updateSpeech({
+      recording:true,
+      recordingUrl:null,
+      recordingDurationMs:0,
+      transcript:"",
+      error:null
+    });
+    await startVoiceRecording();
+  }catch(error){
+    updateSpeech({recording:false,error:error?.message??"Не удалось начать запись."});
+  }
+}
+
+async function handleVoiceStop(){
+  try{
+    const result=await stopVoiceRecording();
+    updateSpeech({
+      recording:false,
+      recordingUrl:result?.url??null,
+      recordingDurationMs:result?.durationMs??0,
+      error:null
+    });
+  }catch(error){
+    updateSpeech({recording:false,error:error?.message??"Не удалось сохранить запись."});
+  }
+}
+
+function handleVoiceClear(){
+  cancelVoiceRecording();
+  clearVoiceRecording();
+  updateSpeech({
+    recording:false,
+    recordingUrl:null,
+    recordingDurationMs:0,
+    transcript:"",
+    error:null
+  });
 }
 
 function bind(){
@@ -208,6 +273,7 @@ function bind(){
   if(sessionNext)sessionNext.onclick=async()=>{
     const session=getState().todaySession;
     if(!session)return;
+    handleVoiceClear();
     const updated=await advanceSession(session);
     setState({todaySession:updated});
     await refreshLearningData(updated.languageId);
@@ -229,6 +295,47 @@ function bind(){
     };
   });
 
+  document.querySelector("#voice-start")?.addEventListener("click",handleVoiceStart);
+  document.querySelector("#voice-stop")?.addEventListener("click",handleVoiceStop);
+  document.querySelector("#voice-clear")?.addEventListener("click",handleVoiceClear);
+
+  document.querySelectorAll("[data-speak-text]").forEach(el=>{
+    el.addEventListener("click",()=>{
+      try{
+        speakReference(el.dataset.speakText,{lang:activeSpeechLang(),rate:.92});
+      }catch(error){
+        updateSpeech({error:error?.message??"Не удалось воспроизвести эталон."});
+      }
+    });
+  });
+
+  const referenceInput=document.querySelector("#speech-reference-text");
+  if(referenceInput){
+    referenceInput.addEventListener("input",e=>{
+      updateSpeech({referenceText:e.target.value});
+    });
+  }
+
+  document.querySelector("#speech-speak")?.addEventListener("click",()=>{
+    const text=document.querySelector("#speech-reference-text")?.value??"";
+    if(!text)return;
+    try{
+      speakReference(text,{lang:activeSpeechLang(),rate:.92});
+    }catch(error){
+      updateSpeech({error:error?.message??"Text-to-Speech недоступен."});
+    }
+  });
+
+  document.querySelector("#speech-recognize")?.addEventListener("click",async()=>{
+    try{
+      updateSpeech({transcript:"",error:null});
+      const result=await recognizeOnce({lang:activeSpeechLang()});
+      updateSpeech({transcript:result.transcript||"Ничего не распознано."});
+    }catch(error){
+      updateSpeech({error:error?.message??"Распознавание речи не удалось."});
+    }
+  });
+
   const il=document.querySelector("#interface-language");
   if(il)il.onchange=async e=>{
     updateSettings({interfaceLanguage:e.target.value});
@@ -244,7 +351,6 @@ function bind(){
 
   document.querySelector("#update-dismiss")?.addEventListener("click",dismissUpdateNotice);
   document.querySelector("#update-dismiss-secondary")?.addEventListener("click",dismissUpdateNotice);
-
   document.querySelector("#update-apply")?.addEventListener("click",()=>{
     applyWaitingUpdate(getState().updateRegistration);
   });
@@ -252,9 +358,7 @@ function bind(){
 
 async function initializeUpdates(){
   const installedNotice=await getReleaseNotice();
-  if(installedNotice){
-    setState({updateNotice:installedNotice});
-  }
+  if(installedNotice)setState({updateNotice:installedNotice});
 
   const registration=await watchServiceWorker(reg=>{
     const current=getState().updateNotice;
@@ -274,9 +378,7 @@ async function initializeUpdates(){
     return null;
   });
 
-  if(registration){
-    setState({updateRegistration:registration});
-  }
+  if(registration)setState({updateRegistration:registration});
 
   const remoteNotice=await checkRemoteUpdate();
   if(remoteNotice){
@@ -296,6 +398,8 @@ async function initializeUpdates(){
 async function bootstrap(){
   try{
     await openDatabase();
+    updateSpeech({capabilities:getSpeechCapabilities()});
+
     const user=await ensureLocalUser();
     const profiles=await listLanguageProfiles();
     const interfaceLanguage=await getSetting("interfaceLanguage");
@@ -313,7 +417,6 @@ async function bootstrap(){
     };
 
     document.documentElement.dataset.reduceMotion=settings.reduceMotion?"true":"false";
-
     setState({
       settings,
       storageReady:true,
@@ -340,6 +443,7 @@ subscribe(render);
 render(getState());
 
 startRouter(route=>{
+  stopReferenceSpeech();
   setState({route});
   if(route==="review")refreshReviewQueue();
   if(route==="session")refreshSessionData();
@@ -351,5 +455,10 @@ addEventListener("online",async()=>{
   if(notice)setState({updateNotice:notice});
 });
 addEventListener("offline",()=>setState({online:false}));
+addEventListener("beforeunload",()=>{
+  cancelVoiceRecording();
+  clearVoiceRecording();
+  stopReferenceSpeech();
+});
 
 bootstrap();
