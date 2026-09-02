@@ -1,10 +1,10 @@
-const CACHE_NAME="language-teacher-shell-v7";
+const CACHE_NAME="language-teacher-shell-v8";
 const APP_SHELL=[
   "./","./index.html","./manifest.webmanifest","./update.json",
   "./src/app/app.js","./src/app/router.js","./src/app/state.js","./src/app/version.js","./src/app/update-manager.js",
   "./src/language/language-catalog.js","./src/language/profile-engine.js",
-  "./src/learning/models.js","./src/learning/learning-repository.js","./src/learning/srs-engine.js",
-  "./src/learning/review-engine.js","./src/learning/session-engine.js",
+  "./src/learning/models.js","./src/learning/learning-repository.js","./src/learning/mistake-engine.js",
+  "./src/learning/srs-engine.js","./src/learning/review-engine.js","./src/learning/session-engine.js","./src/learning/conversation-engine.js",
   "./src/ai/provider.js","./src/ai/local-demo-provider.js","./src/ai/proxy-provider.js",
   "./src/ai/context-builder.js","./src/ai/response-contract.js","./src/ai/response-parser.js","./src/ai/teacher-engine.js",
   "./src/speech/speech-provider.js","./src/speech/browser-speech-provider.js","./src/speech/recorder.js",
@@ -12,10 +12,11 @@ const APP_SHELL=[
   "./src/ui/components/app-header.js","./src/ui/components/bottom-nav.js","./src/ui/components/language-onboarding.js",
   "./src/ui/components/update-notice.js","./src/ui/components/voice-recorder.js",
   "./src/ui/screens/today.js","./src/ui/screens/practice.js","./src/ui/screens/session.js","./src/ui/screens/speech.js",
-  "./src/ui/screens/teacher.js","./src/ui/screens/review.js","./src/ui/screens/words.js","./src/ui/screens/progress.js","./src/ui/screens/settings.js",
+  "./src/ui/screens/teacher.js","./src/ui/screens/conversation.js","./src/ui/screens/review.js",
+  "./src/ui/screens/words.js","./src/ui/screens/progress.js","./src/ui/screens/settings.js",
   "./src/ui/styles/tokens.css","./src/ui/styles/base.css","./src/ui/styles/layout.css","./src/ui/styles/components.css",
   "./src/ui/styles/responsive.css","./src/ui/styles/review.css","./src/ui/styles/session-update.css",
-  "./src/ui/styles/speech.css","./src/ui/styles/teacher.css",
+  "./src/ui/styles/speech.css","./src/ui/styles/teacher.css","./src/ui/styles/conversation.css",
   "./src/storage/db.js","./src/storage/schema.js","./src/storage/migrations.js",
   "./assets/icons/icon-192.png","./assets/icons/icon-512.png"
 ];

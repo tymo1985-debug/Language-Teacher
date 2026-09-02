@@ -31,17 +31,17 @@ export function getActiveAIProvider(){
 export async function requestTeacherResponse({
   languageProfile,
   mode="practice",
-  userInput=""
+  userInput="",
+  conversationTurns=[]
 }){
   const provider=getActiveAIProvider();
-  if(!provider){
-    throw new Error("No AI provider is configured.");
-  }
+  if(!provider)throw new Error("No AI provider is configured.");
 
   const context=await buildTeacherContext({
     languageProfile,
     mode,
-    userInput
+    userInput,
+    conversationTurns
   });
 
   const raw=await provider.generateTeacherResponse(context);

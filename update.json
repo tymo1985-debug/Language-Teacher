@@ -1,11 +1,11 @@
 {
-  "latestVersion": "0.7.0",
-  "phase": "Phase 7 · AI Teacher",
+  "latestVersion": "0.8.0",
+  "phase": "Phase 8 · Conversation",
   "publishedAt": "2026-09-02",
   "changes": [
-    "Исправлено зависавшее окно «Что нового» и конфликт с onboarding.",
-    "AI Teacher получил provider abstraction и Context Builder.",
-    "Ответы AI теперь проходят строгую валидацию перед попаданием в приложение.",
-    "Подготовлен безопасный proxy-provider без API-ключей во frontend."
+    "Многоходовый Conversation Mode с сохранением истории.",
+    "Текстовый и опциональный голосовой ввод.",
+    "Исправления после ответа пользователя без преждевременных подсказок.",
+    "Mistake Memory связывает разговорные ошибки с будущими занятиями."
   ]
 }

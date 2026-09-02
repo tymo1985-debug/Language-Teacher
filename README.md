@@ -8,33 +8,36 @@
 - Phase 5 — Session Engine ✅
 - Phase 6 — Speech ✅
 - Phase 7 — AI Teacher ✅
-- Next: Phase 8 — Conversation
+- Phase 8 — Conversation ✅
+- Next: Phase 9 — Real Life
 
 ## Current version
-**0.7.0** — Phase 7 · AI Teacher
+**0.8.0** — Phase 8 · Conversation
 
-## Hotfix included
-Phase 7 fixes the Phase 6 update-notice lockup:
-- `ServiceWorkerRegistration` is no longer stored in serializable application state;
-- “Понятно” closes the notice immediately, before persistence;
-- update notices are hidden while onboarding is open;
-- update notices remain informational rather than modal.
-
-## Phase 7
+## Phase 8
 Adds:
-- replaceable `AIProvider` abstraction;
-- Context Builder;
-- Teacher Engine;
-- strict structured response contract;
-- validation and safe response parser;
-- local deterministic demo provider;
-- secure proxy-provider interface for future cloud AI;
-- AI Teacher screen.
+- multi-turn Conversation Mode;
+- scenario selection;
+- persisted conversation turns;
+- text responses;
+- optional voice dictation through the existing Speech layer;
+- AI Teacher context with recent conversation turns;
+- corrections shown only after the user's response;
+- Mistake Memory integration;
+- repeated-mistake counting;
+- automatic reuse of conversation mistakes by future Today Sessions.
 
-No API keys or provider secrets are stored in the frontend.
+The current local AI provider is still a deterministic architecture demo. A real conversational model can later replace it through the existing secure provider/proxy interface.
 
-## Important
-The local demo provider validates the architecture but is **not** an LLM. A real remote AI should only be connected through a secured backend/proxy endpoint.
+## Learning loop
+```text
+Conversation response
+→ structured correction
+→ Mistake Memory
+→ repeated count / pattern
+→ Session Engine
+→ future focused practice
+```
 
 ## Run
 ```bash

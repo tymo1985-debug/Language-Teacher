@@ -9,13 +9,8 @@ const state={
   activeLanguageId:null,
   onboardingOpen:false,
   learningSummary:{
-    learningItems:0,
-    mistakes:0,
-    sessions:0,
-    situations:0,
-    reviews:0,
-    dueReviews:0,
-    progress:null
+    learningItems:0,mistakes:0,sessions:0,situations:0,
+    reviews:0,dueReviews:0,progress:null
   },
   reviewQueue:[],
   reviewAnswerVisible:false,
@@ -24,21 +19,20 @@ const state={
   updateNotice:null,
   speech:{
     capabilities:{recording:false,playback:false,synthesis:false,recognition:false},
-    recording:false,
-    recordingUrl:null,
-    recordingDurationMs:0,
-    referenceText:"",
-    transcript:"",
-    error:null
+    recording:false,recordingUrl:null,recordingDurationMs:0,
+    referenceText:"",transcript:"",error:null
   },
   ai:{
     providerId:"local-demo",
     providerLabel:"Local architecture demo",
-    remote:false,
+    remote:false,input:"",loading:false,response:null,error:null
+  },
+  conversation:{
+    session:null,
     input:"",
     loading:false,
-    response:null,
-    error:null
+    error:null,
+    lastCompleted:null
   }
 };
 
@@ -61,6 +55,11 @@ export function updateSpeech(patch){
 
 export function updateAI(patch){
   state.ai={...state.ai,...patch};
+  listeners.forEach(fn=>fn(getState()));
+}
+
+export function updateConversation(patch){
+  state.conversation={...state.conversation,...patch};
   listeners.forEach(fn=>fn(getState()));
 }
 

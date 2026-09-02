@@ -1,5 +1,5 @@
 import {startRouter} from "./router.js";
-import {getState,setState,subscribe,updateSettings,updateSpeech,updateAI} from "./state.js";
+import {getState,setState,subscribe,updateSettings,updateSpeech,updateAI,updateConversation} from "./state.js";
 import {ensureLocalUser,getRecord,getSetting,openDatabase,putRecord,setSetting} from "../storage/db.js";
 import {DEFAULT_USER_ID,STORES} from "../storage/schema.js";
 import {createLanguageProfile,listLanguageProfiles,removeLanguageProfile} from "../language/profile-engine.js";
@@ -8,12 +8,11 @@ import {ensureProgress,getLearningSummary,listSessions} from "../learning/learni
 import {buildReviewQueue,recordReview} from "../learning/review-engine.js";
 import {advanceSession,ensureTodaySession} from "../learning/session-engine.js";
 import {
-  applyWaitingUpdate,
-  checkRemoteUpdate,
-  getReleaseNotice,
-  hasWaitingUpdate,
-  markCurrentVersionSeen,
-  watchServiceWorker
+  continueConversation,finishConversation,getActiveConversation,startConversation
+} from "../learning/conversation-engine.js";
+import {
+  applyWaitingUpdate,checkRemoteUpdate,getReleaseNotice,hasWaitingUpdate,
+  markCurrentVersionSeen,watchServiceWorker
 } from "./update-manager.js";
 import {
   cancelVoiceRecording,clearVoiceRecording,getSpeechCapabilities,recognizeOnce,
@@ -29,6 +28,7 @@ import {renderPractice} from "../ui/screens/practice.js";
 import {renderSession} from "../ui/screens/session.js";
 import {renderSpeech} from "../ui/screens/speech.js";
 import {renderTeacher} from "../ui/screens/teacher.js";
+import {renderConversation} from "../ui/screens/conversation.js";
 import {renderReview} from "../ui/screens/review.js";
 import {renderWords} from "../ui/screens/words.js";
 import {renderProgress} from "../ui/screens/progress.js";
@@ -37,7 +37,8 @@ import {renderSettings} from "../ui/screens/settings.js";
 const app=document.querySelector("#app");
 const screens={
   today:renderToday,practice:renderPractice,session:renderSession,speech:renderSpeech,
-  teacher:renderTeacher,review:renderReview,words:renderWords,progress:renderProgress,settings:renderSettings
+  teacher:renderTeacher,conversation:renderConversation,review:renderReview,
+  words:renderWords,progress:renderProgress,settings:renderSettings
 };
 
 function render(state){
@@ -50,6 +51,12 @@ function render(state){
     ${renderUpdateNotice(state)}
   `;
   bind();
+  if(state.route==="conversation"){
+    requestAnimationFrame(()=>{
+      const stream=document.querySelector("#conversation-stream");
+      if(stream)stream.scrollTop=stream.scrollHeight;
+    });
+  }
 }
 
 const openModal=()=>setState({onboardingOpen:true});
@@ -67,6 +74,15 @@ async function refreshSessionData(languageId=getState().activeLanguageId){
   setState({todaySession,sessionHistory});
 }
 
+async function refreshConversation(languageId=getState().activeLanguageId){
+  if(!languageId){
+    updateConversation({session:null,input:"",error:null});
+    return;
+  }
+  const session=await getActiveConversation(languageId);
+  updateConversation({session,input:"",error:null,loading:false});
+}
+
 async function refreshReviewQueue(languageId=getState().activeLanguageId){
   setState({reviewQueue:languageId?await buildReviewQueue(languageId):[],reviewAnswerVisible:false});
 }
@@ -77,6 +93,7 @@ async function refreshLearningData(languageId=getState().activeLanguageId){
       learningSummary:{learningItems:0,mistakes:0,sessions:0,situations:0,reviews:0,dueReviews:0,progress:null},
       reviewQueue:[],reviewAnswerVisible:false,todaySession:null,sessionHistory:[]
     });
+    updateConversation({session:null,input:""});
     return;
   }
 
@@ -86,7 +103,7 @@ async function refreshLearningData(languageId=getState().activeLanguageId){
     getLearningSummary(languageId),buildReviewQueue(languageId)
   ]);
   setState({learningSummary,reviewQueue,reviewAnswerVisible:false});
-  await refreshSessionData(languageId);
+  await Promise.all([refreshSessionData(languageId),refreshConversation(languageId)]);
 }
 
 async function setActiveLanguage(languageId){
@@ -96,6 +113,7 @@ async function setActiveLanguage(languageId){
   await putRecord(STORES.users,next);
   setState({user:next,activeLanguageId:languageId});
   updateAI({response:null,error:null});
+  updateConversation({session:null,input:"",error:null});
   await refreshLearningData(languageId);
 }
 
@@ -119,14 +137,9 @@ async function refreshProfiles(preferred=null){
 
 function dismissUpdateNotice(){
   const notice=getState().updateNotice;
-
-  // Close immediately. Persistence must never be allowed to block the UI.
   setState({updateNotice:null});
-
   if(notice?.kind==="installed"){
-    markCurrentVersionSeen().catch(error=>{
-      console.debug("Could not persist seen version:",error);
-    });
+    markCurrentVersionSeen().catch(error=>console.debug("Could not persist seen version:",error));
   }
 }
 
@@ -159,12 +172,49 @@ function handleVoiceClear(){
   updateSpeech({recording:false,recordingUrl:null,recordingDurationMs:0,transcript:"",error:null});
 }
 
+async function sendConversation(){
+  const state=getState();
+  const profile=state.languageProfiles.find(p=>p.languageId===state.activeLanguageId);
+  const conversation=state.conversation.session;
+  const input=state.conversation.input.trim();
+
+  if(!profile||!conversation||!input)return;
+
+  try{
+    updateConversation({loading:true,error:null});
+    const result=await continueConversation({
+      conversation,
+      languageProfile:profile,
+      userText:input
+    });
+
+    updateConversation({
+      session:result.conversation,
+      input:"",
+      loading:false,
+      error:null
+    });
+
+    // New mistakes from conversation immediately become visible to Session Engine.
+    await refreshLearningData(profile.languageId);
+    updateConversation({
+      session:result.conversation,
+      input:"",
+      loading:false,
+      error:null
+    });
+  }catch(error){
+    updateConversation({loading:false,error:error?.message??"Не удалось продолжить разговор."});
+  }
+}
+
 function bind(){
   document.querySelectorAll("[data-route]").forEach(el=>{
     el.onclick=async()=>{
       const route=el.dataset.route;
       if(route==="review")await refreshReviewQueue();
       if(route==="session")await refreshSessionData();
+      if(route==="conversation")await refreshConversation();
       location.hash=`#/${route}`;
     };
   });
@@ -206,6 +256,64 @@ function bind(){
     await ensureProgress(languageId,profile.skills);
     closeModal();await refreshProfiles(languageId);
   };
+
+  document.querySelectorAll("[data-conversation-scenario]").forEach(el=>{
+    el.addEventListener("click",async()=>{
+      const profile=getState().languageProfiles.find(p=>p.languageId===getState().activeLanguageId);
+      if(!profile)return;
+      try{
+        const session=await startConversation({
+          languageProfile:profile,
+          scenarioId:el.dataset.conversationScenario
+        });
+        updateConversation({session,input:"",loading:false,error:null});
+        await refreshLearningData(profile.languageId);
+        updateConversation({session,input:"",loading:false,error:null});
+      }catch(error){
+        updateConversation({error:error?.message??"Не удалось начать разговор."});
+      }
+    });
+  });
+
+  const convoInput=document.querySelector("#conversation-input");
+  if(convoInput){
+    convoInput.addEventListener("input",e=>updateConversation({input:e.target.value}));
+    convoInput.addEventListener("keydown",e=>{
+      if(e.key==="Enter"&&!e.shiftKey){
+        e.preventDefault();
+        sendConversation();
+      }
+    });
+  }
+
+  document.querySelector("#conversation-send")?.addEventListener("click",sendConversation);
+
+  document.querySelector("#conversation-dictate")?.addEventListener("click",async()=>{
+    try{
+      updateConversation({error:null});
+      const result=await recognizeOnce({lang:activeSpeechLang()});
+      if(result.transcript){
+        updateConversation({input:result.transcript});
+      }else{
+        updateConversation({error:"Речь не распознана. Можно ответить текстом."});
+      }
+    }catch(error){
+      updateConversation({error:error?.message??"Голосовой ввод недоступен."});
+    }
+  });
+
+  document.querySelector("#conversation-finish")?.addEventListener("click",async()=>{
+    const conversation=getState().conversation.session;
+    if(!conversation)return;
+    const completed=await finishConversation(conversation);
+    updateConversation({
+      session:null,input:"",loading:false,error:null,lastCompleted:completed
+    });
+    await refreshLearningData(completed.languageId);
+    updateConversation({
+      session:null,input:"",loading:false,error:null,lastCompleted:completed
+    });
+  });
 
   document.querySelector("#session-next")?.addEventListener("click",async()=>{
     const session=getState().todaySession;if(!session)return;
@@ -258,21 +366,14 @@ function bind(){
   document.querySelector("#teacher-generate")?.addEventListener("click",async()=>{
     const profile=getState().languageProfiles.find(p=>p.languageId===getState().activeLanguageId);
     if(!profile)return;
-
     try{
       updateAI({loading:true,response:null,error:null});
       const result=await requestTeacherResponse({
-        languageProfile:profile,
-        mode:"practice",
-        userInput:getState().ai.input
+        languageProfile:profile,mode:"practice",userInput:getState().ai.input
       });
       updateAI({
-        loading:false,
-        response:result.response,
-        providerId:result.provider.id,
-        providerLabel:result.provider.label,
-        remote:Boolean(result.provider.capabilities.remote),
-        error:null
+        loading:false,response:result.response,providerId:result.provider.id,
+        providerLabel:result.provider.label,remote:Boolean(result.provider.capabilities.remote),error:null
       });
     }catch(error){
       updateAI({loading:false,error:error?.message??"AI Teacher request failed."});
@@ -301,8 +402,7 @@ async function initializeUpdates(){
     setState({
       updateNotice:{
         ...(current??{
-          kind:"available",
-          title:"Доступно обновление приложения",
+          kind:"available",title:"Доступно обновление приложения",
           changes:["Новая версия загружена и готова к установке."]
         }),
         serviceWorkerReady:true
@@ -311,10 +411,7 @@ async function initializeUpdates(){
   }).catch(error=>console.debug("Service worker update watch unavailable:",error));
 
   const remoteNotice=await checkRemoteUpdate();
-  if(remoteNotice){
-    setState({updateNotice:{...remoteNotice,serviceWorkerReady:hasWaitingUpdate()}});
-  }
-
+  if(remoteNotice)setState({updateNotice:{...remoteNotice,serviceWorkerReady:hasWaitingUpdate()}});
   navigator.serviceWorker?.addEventListener("controllerchange",()=>location.reload());
 }
 
@@ -345,7 +442,10 @@ async function bootstrap(){
     };
 
     document.documentElement.dataset.reduceMotion=settings.reduceMotion?"true":"false";
-    setState({settings,storageReady:true,user,languageProfiles:profiles,activeLanguageId:active,onboardingOpen:profiles.length===0});
+    setState({
+      settings,storageReady:true,user,languageProfiles:profiles,
+      activeLanguageId:active,onboardingOpen:profiles.length===0
+    });
 
     if(active){
       const profile=profiles.find(p=>p.languageId===active);
@@ -368,6 +468,7 @@ startRouter(route=>{
   setState({route});
   if(route==="review")refreshReviewQueue();
   if(route==="session")refreshSessionData();
+  if(route==="conversation")refreshConversation();
 });
 
 addEventListener("online",async()=>{

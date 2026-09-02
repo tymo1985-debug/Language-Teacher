@@ -22,7 +22,16 @@ export function parseTeacherResponse(raw){
       hints:Array.isArray(block.hints)?block.hints:[],
       expectedAnswer:block.expectedAnswer??null
     })),
-    corrections:value.corrections,
+    corrections:value.corrections.map(correction=>({
+      understood:correction.understood!==false,
+      original:correction.original,
+      corrected:correction.corrected,
+      natural:correction.natural,
+      note:correction.note,
+      severity:correction.severity,
+      category:correction.category??"conversation",
+      pattern:correction.pattern??null
+    })),
     learningSignals:{
       suggestedItems:Array.isArray(value.learningSignals?.suggestedItems)
         ?value.learningSignals.suggestedItems:[],
@@ -34,9 +43,6 @@ export function parseTeacherResponse(raw){
 }
 
 function safeJsonParse(raw){
-  try{
-    return JSON.parse(raw);
-  }catch{
-    throw new Error("AI Teacher returned invalid JSON.");
-  }
+  try{return JSON.parse(raw);}
+  catch{throw new Error("AI Teacher returned invalid JSON.");}
 }

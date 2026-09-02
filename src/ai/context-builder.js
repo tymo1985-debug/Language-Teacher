@@ -15,7 +15,8 @@ function newest(items,count){
 export async function buildTeacherContext({
   languageProfile,
   mode="practice",
-  userInput=""
+  userInput="",
+  conversationTurns=[]
 }){
   if(!languageProfile?.languageId){
     throw new Error("languageProfile is required for AI Teacher context.");
@@ -32,7 +33,7 @@ export async function buildTeacherContext({
   ]);
 
   return {
-    contextVersion:1,
+    contextVersion:2,
     userId:languageProfile.userId,
     languageId,
     languageProfile:{
@@ -44,6 +45,12 @@ export async function buildTeacherContext({
     },
     mode,
     userInput:String(userInput??"").slice(0,2000),
+    conversationTurns:Array.isArray(conversationTurns)
+      ?conversationTurns.slice(-12).map(turn=>({
+        role:turn.role,
+        text:String(turn.text??"").slice(0,1500)
+      }))
+      :[],
     weakItems:dueReviews.slice(0,8).map(entry=>({
       id:entry.item.id,
       type:entry.item.type,
@@ -69,6 +76,7 @@ export async function buildTeacherContext({
       id:session.id,
       topic:session.topic,
       status:session.status,
+      mode:session.mode??"session",
       completedAt:session.completedAt
     })),
     recentItems:newest(items,10).map(item=>({

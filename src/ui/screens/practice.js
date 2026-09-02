@@ -7,7 +7,7 @@ export function renderPractice(state){
     <div class="page-intro">
       <p class="eyebrow">PRACTICE</p>
       <h2>Выберите короткую практику</h2>
-      <p class="muted">Session, Review, Speech и архитектура AI Teacher уже подключены.</p>
+      <p class="muted">Conversation теперь связывает AI Teacher, Speech и Mistake Memory в один поток.</p>
     </div>
 
     <div class="card-grid">
@@ -18,10 +18,17 @@ export function renderPractice(state){
         <span class="feature-card-arrow">→</span>
       </button>
 
+      <button class="feature-card" type="button" data-route="conversation">
+        <span class="feature-card-title">Conversation</span>
+        <span class="feature-card-text">Многоходовый диалог с исправлениями после вашего ответа.</span>
+        <span class="pill">Multi-turn</span>
+        <span class="feature-card-arrow">→</span>
+      </button>
+
       <button class="feature-card" type="button" data-route="teacher">
         <span class="feature-card-title">AI Teacher</span>
         <span class="feature-card-text">Структурированные упражнения через безопасный provider layer.</span>
-        <span class="pill">Local demo</span>
+        <span class="pill">Provider layer</span>
         <span class="feature-card-arrow">→</span>
       </button>
 
@@ -39,7 +46,6 @@ export function renderPractice(state){
         <span class="feature-card-arrow">→</span>
       </button>
 
-      ${placeholder("Conversation","Полноценный разговорный режим")}
       ${placeholder("Real Life","Мне нужно это сейчас")}
     </div>
   </section>`;
