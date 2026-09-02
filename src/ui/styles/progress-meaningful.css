@@ -1,0 +1,18 @@
+.meaningful-progress{--progress-pad:clamp(18px,4vw,28px)}
+.progress-evidence-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2)}
+.progress-evidence-strip article{display:flex;flex-direction:column;gap:2px;padding:var(--space-4);border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface)}
+.progress-evidence-strip strong{font-size:1.4rem}.progress-evidence-strip span{font-weight:700}.progress-evidence-strip small{color:var(--text-secondary)}
+.progress-panel{overflow:hidden;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);box-shadow:var(--shadow-sm)}
+.progress-heading{padding:var(--progress-pad);margin:0;border-bottom:1px solid var(--border)}
+.meaningful-skill-list{display:grid}.meaningful-skill-row{display:grid;gap:var(--space-3);padding:var(--progress-pad);border-bottom:1px solid var(--border)}
+.meaningful-skill-meta{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-4)}
+.meaningful-skill-meta>span{display:flex;flex-direction:column;gap:3px}.meaningful-skill-meta>span:last-child{text-align:right}
+.meaningful-skill-meta small{color:var(--text-secondary);font-size:.76rem}
+.progress-method-note{margin:0;padding:var(--space-4) var(--progress-pad);color:var(--text-secondary);font-size:.78rem;line-height:1.5;background:var(--surface-soft)}
+.capability-list{display:grid}.capability-row{display:grid;grid-template-columns:12px minmax(0,1fr) auto;align-items:center;gap:var(--space-3);padding:var(--space-4) var(--progress-pad);border-bottom:1px solid var(--border)}
+.capability-row:last-child{border-bottom:0}.capability-row>div{display:flex;flex-direction:column;gap:4px}.capability-row small,.capability-row>span:last-child{color:var(--text-secondary);font-size:.75rem}
+.capability-state{width:10px;height:10px;border-radius:50%;background:var(--border)}.capability-state.developing{background:var(--warning)}.capability-state.good{background:var(--success)}
+.progress-attention-card{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:var(--space-4);padding:var(--space-5);border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.progress-attention-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--accent-soft);color:var(--accent);font-weight:800}.progress-attention-card p{margin:5px 0 0;color:var(--text-secondary);line-height:1.45}
+@media(min-width:720px){.progress-evidence-strip{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:560px){.meaningful-skill-meta{flex-direction:column}.meaningful-skill-meta>span:last-child{text-align:left}.capability-row{grid-template-columns:12px minmax(0,1fr)}.capability-row>span:last-child{grid-column:2}.progress-attention-card{grid-template-columns:44px 1fr}.progress-attention-card button{grid-column:1/-1;width:100%}}

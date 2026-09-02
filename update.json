@@ -1,11 +1,11 @@
 {
-  "latestVersion": "1.3.0",
-  "phase": "Phase 12.2 · Learning Library",
+  "latestVersion": "1.4.0",
+  "phase": "Phase 12.3 · Meaningful Progress",
   "publishedAt": "2026-09-02",
   "changes": [
-    "Learning Library показывает реальные Learning Items вместо одних счётчиков.",
-    "Добавлены Mistake Memory и сохранённые Real Life ситуации.",
-    "Видна память по recognition, production, listening и pronunciation.",
-    "На Today появилась ручная проверка обновлений."
+    "Progress использует реальные данные Learning Items, Review и завершённых сессий.",
+    "Отделены стартовая оценка и показатели, подтверждённые практикой.",
+    "Добавлен блок реальных коммуникативных возможностей.",
+    "Добавлены автоматические тесты Progress Engine."
   ]
 }
