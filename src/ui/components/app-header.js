@@ -10,6 +10,7 @@ export function renderHeader(state){
 }
 function title(route){
   return ({
+    session:t("start_today"),conversation:t("talk"),"real-life":t("real_life"),speech:t("pronunciation"),review:t("review"),teacher:t("grammar"),
     today:t("nav_today"),practice:t("nav_practice"),words:t("nav_words"),
     progress:t("nav_progress"),settings:t("nav_settings")
   })[route]??t("nav_today");

@@ -1,3 +1,5 @@
+> Superseded by [the 1.14.1 user audit](AUDIT_1.14.1.md), which found additional persistence failures in this release.
+
 # Language Teacher — Final Audit / Release 1.14.0
 
 ## Result

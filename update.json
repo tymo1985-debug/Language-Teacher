@@ -1,11 +1,12 @@
 {
-  "latestVersion": "1.14.0",
-  "phase": "Final Release · Functional Audit",
+  "latestVersion": "1.14.1",
+  "phase": "User Audit · Stability Fixes",
   "publishedAt": "2026-09-02",
   "changes": [
-    "Исправлен финальный regression полного ru/en/uk UI: восстановлены foundation translation keys.",
-    "Добавлен automated translation contract для core UI.",
-    "Restore теперь отвергает malformed backup до очистки локальных stores.",
-    "Добавлен итоговый audit report и release safety tests."
+    "Диалоги запускаются и сохраняются; сегодняшнее занятие продолжается после перезагрузки.",
+    "Восстановление резервной копии сохраняет прежние данные при любой ошибке записи.",
+    "Улучшены переводы, обработка повторных нажатий и работа голосовых функций.",
+    "Локальные шаблоны явно обозначены. Облачный AI требует подключения сервера.",
+    "Обновление PWA сохраняет согласованную версию и работу без сети."
   ]
 }

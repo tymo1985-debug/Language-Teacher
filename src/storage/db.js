@@ -20,8 +20,8 @@ async function tx(storeName,mode,action){
   return new Promise((resolve,reject)=>{
     const transaction=db.transaction(storeName,mode);
     const request=action(transaction.objectStore(storeName));
-    request.onsuccess=()=>resolve(request.result);
-    request.onerror=()=>reject(request.error);
+    transaction.oncomplete=()=>resolve(request.result);
+    transaction.onabort=()=>reject(transaction.error??new Error("Database transaction aborted."));
     transaction.onerror=()=>reject(transaction.error);
   });
 }
@@ -89,4 +89,26 @@ export async function ensureLocalUser(){
   };
   await putRecord(STORES.users,user);
   return user;
+}
+
+// Clear and replace all stores in one transaction: a failure rolls everything back.
+export async function replaceRecords(stores,data){
+  stores.forEach(check);
+  const db=await openDatabase();
+  return new Promise((resolve,reject)=>{
+    const transaction=db.transaction(stores,"readwrite");
+    transaction.oncomplete=()=>resolve();
+    transaction.onabort=()=>reject(transaction.error??new Error("Restore aborted; existing data was preserved."));
+    transaction.onerror=()=>reject(transaction.error);
+    try{
+      for(const name of stores){
+        const store=transaction.objectStore(name);
+        store.clear();
+        for(const record of data[name])store.put(record);
+      }
+    }catch(error){
+      transaction.onabort=()=>reject(error);
+      transaction.abort();
+    }
+  });
 }

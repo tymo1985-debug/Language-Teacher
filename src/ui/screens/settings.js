@@ -31,7 +31,7 @@ export function renderSettings(state){
       <div class="section-heading">
         <div><p class="eyebrow">BACKUP</p><h3>${t("backup_title")}</h3></div>
       </div>
-      <p class="muted">Основные учебные данные входят в JSON backup. Аудиозаписи пока не входят.</p>
+      <p class="muted">${t("backup_note")}</p>
       <div class="backup-actions">
         <button type="button" class="secondary-button" id="backup-export">${t("backup_export")}</button>
         <label class="secondary-button backup-file-label">${t("backup_restore")}
@@ -46,7 +46,7 @@ export function renderSettings(state){
         <button type="button" class="secondary-button compact" id="release-check-run">${t("check")}</button>
       </div>
       ${state.releaseCheck?renderReleaseCheck(state.releaseCheck):`
-        <p class="muted">Проверяет реальную регистрацию Service Worker, offline cache, IndexedDB, manifest, storage, speech fallbacks и cloud AI deployment.</p>
+        <p class="muted">${t("release_note")}</p>
       `}
     </article>
 
@@ -56,7 +56,7 @@ export function renderSettings(state){
         <button type="button" class="secondary-button compact" id="add-language-settings">${t("add_language")}</button>
       </div>
       ${state.languageProfiles.length
-        ?state.languageProfiles.map(p=>`<div class="settings-language-row"><span>${p.flag}</span><span><strong>${p.name}</strong><small>${p.goals.length} goals</small></span><button type="button" class="text-button danger-text" data-language-remove="${p.languageId}">${t("remove")}</button></div>`).join("")
+        ?state.languageProfiles.map(p=>`<div class="settings-language-row"><span>${esc(p.flag)}</span><span><strong>${esc(p.name)}</strong><small>${t("goals_count",{n:p.goals?.length??0})}</small></span><button type="button" class="text-button danger-text" data-language-remove="${esc(p.languageId)}">${t("remove")}</button></div>`).join("")
         :'<p class="muted">—</p>'}
     </article>
 
@@ -65,9 +65,9 @@ export function renderSettings(state){
       <h3>${esc(ai.providerLabel??"Local architecture demo")}</h3>
       <label class="field-label" for="ai-provider">${t("ai_mode")}</label>
       <select id="ai-provider" class="select-control">
-        ${(ai.providers??[]).map(p=>`<option value="${esc(p.id)}" ${p.id===ai.providerId?"selected":""} ${p.capabilities?.available===false?"disabled":""}>${esc(p.label)}${p.capabilities?.available===false?" · unavailable":""}</option>`).join("")}
+        ${(ai.providers??[]).map(p=>`<option value="${esc(p.id)}" ${p.id===ai.providerId?"selected":""} ${p.capabilities?.available===false?"disabled":""}>${esc(p.label)}${p.capabilities?.available===false?` · ${t("unavailable")}`:""}</option>`).join("")}
       </select>
-      <p class="muted">${ai.remote?"Remote requests go only through the configured secure backend proxy.":"Local mode remains the safe fallback when a cloud backend is not deployed."}</p>
+      <p class="muted">${ai.remote?t("cloud_note"):t("local_note")}</p>
     </article>
 
     <article class="info-card">
@@ -99,10 +99,10 @@ export function renderSettings(state){
 function renderReleaseCheck(result){
   const optional=result.optionalUnavailableCount??result.checks.filter(x=>!x.ok&&x.optional).length;
   return `<div class="release-check ${result.passed?"is-passed":"is-failed"}">
-    <strong>${result.passed?"✓ Основные проверки пройдены":"! Есть блокирующие проблемы"}</strong>
+    <strong>${result.passed?t("check_pass"):t("check_fail")}</strong>
     <p class="muted">${result.passed
-      ? optional?`Основное окружение готово. ${optional} необязательных возможностей недоступно.`:"Основное окружение и optional capabilities доступны."
-      :`Блокирующих проблем: ${result.blockingCount??"—"}.`}</p>
+      ? t("optional_count",{n:optional})
+      :t("blocking_count",{n:result.blockingCount??0})}</p>
     <div class="release-check-list">
       ${result.checks.map(check=>`
         <div class="release-check-row">
@@ -119,5 +119,5 @@ function status(label,available){
   return `<div class="speech-setting-row"><span>${available?"✓":"—"}</span><strong>${label}</strong><small>${available?t("available"):t("unavailable")}</small></div>`;
 }
 function esc(value=""){
-  return String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+  return String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }

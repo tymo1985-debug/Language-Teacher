@@ -1,6 +1,6 @@
 import {BACKUP_FORMAT,BACKUP_VERSION} from "./backup.js";
 import {STORES} from "./schema.js";
-import {clearStore,putRecord} from "./db.js";
+import {replaceRecords} from "./db.js";
 import {validatePortableBackup} from "./backup-validation.js";
 
 const RESTORE_STORES=[
@@ -32,18 +32,7 @@ export async function restoreBackup(value){
     throw error;
   }
 
-  // Validation is complete before the first destructive write.
-  // A malformed record can no longer wipe the current local data midway through restore.
-  for(const store of RESTORE_STORES){
-    await clearStore(store);
-  }
-
-  for(const store of RESTORE_STORES){
-    const records=value.data?.[store]??[];
-    for(const record of records){
-      await putRecord(store,record);
-    }
-  }
+  await replaceRecords(RESTORE_STORES,value.data);
 
   return {
     restoredAt:new Date().toISOString(),

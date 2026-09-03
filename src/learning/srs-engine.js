@@ -1,3 +1,4 @@
+import {t} from "../i18n/i18n.js";
 export const REVIEW_RATINGS=["again","hard","good","easy"];
 export const MEMORY_DIMENSIONS=["recognition","production","listening","pronunciation"];
 
@@ -22,8 +23,8 @@ export function chooseReviewExercise(item){
       dimension,
       kind:"recognition",
       prompt:item.text,
-      instruction:"Вспомните значение выражения.",
-      answer:item.meaning||"Значение пока не указано."
+      instruction:t("recall_meaning"),
+      answer:item.meaning||t("meaning_missing")
     };
   }
 
@@ -31,10 +32,10 @@ export function chooseReviewExercise(item){
     return {
       dimension,
       kind:"listening-recall",
-      prompt:"Прослушайте фразу без текста и вспомните её смысл.",
-      instruction:"Сначала слушайте. Текст появится только после ответа.",
+      prompt:t("recall_listen"),
+      instruction:t("listen_first"),
       answer:item.text,
-      meaning:item.meaning||"Значение пока не указано.",
+      meaning:item.meaning||t("meaning_missing"),
       audioText:item.text
     };
   }
@@ -44,7 +45,7 @@ export function chooseReviewExercise(item){
       dimension,
       kind:"pronunciation-recall",
       prompt:item.text,
-      instruction:"Произнесите выражение естественно вслух, затем сравните себя с написанием.",
+      instruction:t("recall_pronunciation"),
       answer:item.text
     };
   }
@@ -52,8 +53,8 @@ export function chooseReviewExercise(item){
   return {
     dimension:"production",
     kind:"production",
-    prompt:item.meaning||"Воспроизведите выражение по памяти.",
-    instruction:"Скажите или напишите выражение на изучаемом языке.",
+    prompt:item.meaning||t("recall_production"),
+    instruction:t("recall_production"),
     answer:item.text
   };
 }

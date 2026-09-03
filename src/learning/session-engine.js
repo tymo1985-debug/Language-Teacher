@@ -1,10 +1,11 @@
+import {t,translateGoal} from "../i18n/i18n.js";
 import {listLearningItems,listMistakes,listPersonalSituations,listSessions,saveSession} from "./learning-repository.js";
 import {buildReviewQueue} from "./review-engine.js";
 
-const DAY=24*60*60*1000;
+const pendingSessions=new Map();
 
-function todayKey(date=new Date()){
-  return date.toISOString().slice(0,10);
+export function todayKey(date=new Date()){
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
 }
 
 function newest(items,count){
@@ -46,10 +47,10 @@ export async function buildLocalSession({
 
   blocks.push(makeBlock(
     "CONTEXT",
-    "Цель занятия",
+    t("session_goal"),
     goals.length
-      ? `Сегодня фокусируемся на вашей цели: ${goals[0]}.`
-      : "Короткая практика на активное использование языка.",
+      ? t("session_goal_text",{goal:translateGoal(goals[0])})
+      : t("session_general"),
     {estimatedMinutes:1}
   ));
 
@@ -112,8 +113,8 @@ export async function buildLocalSession({
   if(blocks.length===1){
     blocks.push(makeBlock(
       "RESPOND",
-      "Свободная реакция",
-      "Скажите вслух 2–3 простые фразы на изучаемом языке о том, что вы делаете сегодня.",
+      t("session_free"),
+      t("session_free_text"),
       {estimatedMinutes:2,starterBlock:true}
     ));
   }
@@ -131,10 +132,19 @@ export async function buildLocalSession({
 
 export async function ensureTodaySession(languageProfile,targetDuration=10){
   if(!languageProfile?.languageId)return null;
+  const key=`${languageProfile.languageId}:${todayKey()}`;
+  if(!pendingSessions.has(key)){
+    pendingSessions.set(key,loadTodaySession(languageProfile,targetDuration).finally(()=>pendingSessions.delete(key)));
+  }
+  return pendingSessions.get(key);
+}
+
+async function loadTodaySession(languageProfile,targetDuration){
+  if(!languageProfile?.languageId)return null;
   const sessions=await listSessions(languageProfile.languageId);
   const key=todayKey();
   const todaySessions=sessions
-    .filter(session=>session.dayKey===key&&session.mode!=="conversation")
+    .filter(session=>(session.dayKey??todayKey(new Date(session.createdAt)))===key&&session.mode!=="conversation")
     .sort((a,b)=>(b.updatedAt??b.createdAt??"").localeCompare(a.updatedAt??a.createdAt??""));
   const existing=todaySessions.find(session=>session.status==="completed")??todaySessions[0];
 

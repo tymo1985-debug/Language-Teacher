@@ -8,8 +8,6 @@ import {getServerBindConfig} from "./bind-config.mjs";
 
 const SERVER_DIR=path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR=path.resolve(SERVER_DIR,"..");
-const PORT=Number(process.env.PORT)||8787;
-const HOST=String(process.env.HOST||"0.0.0.0");
 const BODY_LIMIT=128*1024;
 const WINDOW_MS=60_000;
 const REQUEST_LIMIT=30;
@@ -98,8 +96,11 @@ async function handleTeacher(request,response){
 }
 
 async function handleStatic(request,response,url){
-  const pathname=decodeURIComponent(url.pathname);
-  if(pathname.startsWith("/.")||pathname.startsWith("/server/")||pathname.startsWith("/tests/")){
+  let pathname;
+  try{pathname=decodeURIComponent(url.pathname);}catch{
+    response.writeHead(400);response.end("Invalid URL");return;
+  }
+  if(pathname.split("/").some(part=>part.startsWith("."))||!(/^\/(?:index\.html|sw\.js|manifest\.webmanifest|update\.json|deployment-config\.js)$/.test(pathname)||pathname==="/"||pathname.startsWith("/src/")||pathname.startsWith("/assets/"))){
     response.writeHead(404);response.end("Not found");return;
   }
 
@@ -117,7 +118,10 @@ async function handleStatic(request,response,url){
       "X-Content-Type-Options":"nosniff",
       "Referrer-Policy":"same-origin"
     });
-    createReadStream(filePath).pipe(response);
+    if(request.method==="HEAD"){response.end();return;}
+    const stream=createReadStream(filePath);
+    stream.on("error",()=>response.destroy());
+    stream.pipe(response);
   }catch{
     response.writeHead(404);response.end("Not found");
   }
@@ -135,7 +139,13 @@ export function createLanguageTeacherServer(){
       });
     }
 
-    if(url.pathname==="/api/teacher"&&request.method==="POST")return handleTeacher(request,response);
+    if(url.pathname==="/api/teacher"&&request.method==="POST"){
+      const origin=request.headers.origin;
+      let sameOrigin=false;
+      try{sameOrigin=Boolean(origin)&&new URL(origin).host===request.headers.host;}catch{}
+      if(origin&&!sameOrigin&&!allowedOrigins().has(origin))return json(request,response,403,{error:"Origin not allowed"});
+      return handleTeacher(request,response);
+    }
 
     if((url.pathname==="/api/teacher"||url.pathname==="/api/health")&&request.method==="OPTIONS"){
       const origin=request.headers.origin;

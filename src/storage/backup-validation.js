@@ -17,14 +17,28 @@ export function validatePortableBackup(value,{format,version,stores}){
 
   for(const store of stores){
     const records=value.data[store];
-    if(records!==undefined&&!Array.isArray(records)){
+    if(!Array.isArray(records)){
       errors.push(`${store} должен быть массивом.`);
       continue;
     }
 
+    const ids=new Set();
     for(const [index,record] of (records??[]).entries()){
-      if(!record||typeof record!=="object"||Array.isArray(record)||!record.id){
+      if(!record||typeof record!=="object"||Array.isArray(record)||typeof record.id!=="string"||!record.id.trim()||ids.has(record.id)){
         errors.push(`Некорректная запись ${index+1} в ${store}.`);
+      }else{
+        ids.add(record.id);
+        const fail=()=>errors.push(`Повреждённые данные записи ${index+1} в ${store}.`);
+        if(store==="languageProfiles"&&(
+          typeof record.languageId!=="string"||!record.languageId.match(/^[a-z]{2,3}(?:-[A-Za-z]{2,4})?$/)||
+          typeof record.userId!=="string"||typeof record.createdAt!=="string"||
+          !Array.isArray(record.goals)||!record.goals.every(goal=>typeof goal==="string")
+        ))fail();
+        if(store==="sessions"&&(!Array.isArray(record.blocks)||record.blocks.some(block=>!block||typeof block!=="object")||
+          (record.turns!==undefined&&(!Array.isArray(record.turns)||record.turns.some(turn=>!turn||typeof turn!=="object")))))fail();
+        for(const field of ["createdAt","updatedAt","completedAt","nextReviewAt","reviewedAt"]){
+          if(record[field]!=null&&(typeof record[field]!=="string"||!Number.isFinite(Date.parse(record[field]))))fail();
+        }
       }
     }
   }

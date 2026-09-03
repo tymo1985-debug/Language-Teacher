@@ -4,6 +4,7 @@ export class BrowserRecorder {
     this.recorder=null;
     this.chunks=[];
     this.startedAt=null;
+    this.generation=0;
   }
 
   get supported(){
@@ -22,7 +23,11 @@ export class BrowserRecorder {
       return;
     }
 
-    this.stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const generation=++this.generation;
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    if(generation!==this.generation){stream.getTracks().forEach(track=>track.stop());return;}
+    this.stream=stream;
+    try{
     this.chunks=[];
 
     const options=this.pickOptions();
@@ -42,6 +47,7 @@ export class BrowserRecorder {
       this.recorder.addEventListener("error",onError,{once:true});
       this.recorder.start();
     });
+    }catch(error){this.cancel();throw error;}
   }
 
   async stop(){
@@ -52,7 +58,8 @@ export class BrowserRecorder {
     const mimeType=this.recorder.mimeType||"audio/webm";
     const durationMs=this.startedAt?Date.now()-this.startedAt:0;
 
-    const blob=await new Promise((resolve,reject)=>{
+    let blob;
+    try{blob=await new Promise((resolve,reject)=>{
       this.recorder.addEventListener("stop",()=>{
         resolve(new Blob(this.chunks,{type:mimeType}));
       },{once:true});
@@ -61,10 +68,11 @@ export class BrowserRecorder {
       },{once:true});
       this.recorder.stop();
     });
-
-    this.releaseStream();
-    this.recorder=null;
-    this.startedAt=null;
+    }finally{
+      this.releaseStream();
+      this.recorder=null;
+      this.startedAt=null;
+    }
 
     return {
       blob,
@@ -74,6 +82,7 @@ export class BrowserRecorder {
   }
 
   cancel(){
+    this.generation+=1;
     try{
       if(this.recorder?.state==="recording"){
         this.recorder.stop();

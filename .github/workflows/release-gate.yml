@@ -21,5 +21,8 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install test dependencies
+        run: npm ci
+
       - name: Run release gate
         run: npm run gate

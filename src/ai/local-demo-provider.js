@@ -194,7 +194,7 @@ function conversationResponse(context){
   ];
 
   return baseResponse({
-    message:replies[Math.min(turnCount,replies.length-1)],
+    message:replies[Math.max(0,Math.min(turnCount-1,replies.length-1))],
     blocks:[{
       type:"ROLEPLAY",
       title:"Продолжение диалога",

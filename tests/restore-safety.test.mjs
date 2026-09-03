@@ -22,3 +22,9 @@ test("malformed record is rejected before destructive restore begins",()=>{
   assert.equal(result.valid,false);
   assert.ok(result.errors.some(error=>error.includes("settings")));
 });
+
+test("duplicate keys and incomplete stores cannot silently overwrite learning data",()=>{
+  for(const data of [{users:[{id:"x"},{id:"x"}],settings:[]},{users:[]}]){
+    assert.equal(validatePortableBackup({format:"language-teacher-backup",backupVersion:1,data},options).valid,false);
+  }
+});

@@ -35,6 +35,7 @@ export class BrowserSpeechRecognition {
         resolve({transcript:"",confidence:0});
       },{once:true});
 
+      recognition.addEventListener("end",()=>resolve({transcript:"",confidence:0}),{once:true});
       recognition.start();
     });
   }

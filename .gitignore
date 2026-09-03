@@ -11,3 +11,9 @@ Thumbs.db
 
 # Local temporary files
 tmp/
+
+# Dependencies and local secrets
+node_modules/
+.env
+.env.*
+!.env.example

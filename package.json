@@ -1,6 +1,6 @@
 {
   "name": "language-teacher",
-  "version": "1.14.0",
+  "version": "1.14.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,5 +10,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "^6.2.5"
   }
 }

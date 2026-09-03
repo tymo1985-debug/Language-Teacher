@@ -3,7 +3,13 @@ import {deleteRecord,getAllRecords,getRecord,putRecord} from "../storage/db.js";
 import {getLanguageMeta} from "./language-catalog.js";
 const skills=v=>({speaking:v,listening:v,pronunciation:v,grammar:v,vocabulary:v});
 export async function listLanguageProfiles(){
-  return (await getAllRecords(STORES.languageProfiles)).filter(x=>x.userId===DEFAULT_USER_ID).sort((a,b)=>a.createdAt.localeCompare(b.createdAt));
+  return (await getAllRecords(STORES.languageProfiles))
+    .filter(profile=>profile.userId===DEFAULT_USER_ID)
+    .map(profile=>{
+      const {name,label,flag}=getLanguageMeta(profile.languageId);
+      return {...profile,name,label,flag};
+    })
+    .sort((a,b)=>a.createdAt.localeCompare(b.createdAt));
 }
 export async function createLanguageProfile({languageId,goals,selfAssessment}){
   const id=`${DEFAULT_USER_ID}:${languageId}`;
