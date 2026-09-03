@@ -73,16 +73,18 @@ physical offline reload and the complete post-deployment UI pass remain unverifi
 - Existing release-check descriptions and stored teaching prompts are not all translated; core controls have been improved and translation tests pass.
 - No user learning records were deleted during the live audit. Test material was added through the UI.
 
-## Publication
+## Publication — confirmed 2026-09-03
 
-Publication was attempted through the installed GitHub integration. GitHub rejected
-creation of the release tree with HTTP 403, `Resource not accessible by integration`.
-The shell also has no authenticated GitHub credentials. No remote branch or live
-PWA was changed. The original main remains `e875bc86b9626e131c51ffcb13fb135f48974e49`.
-The original 1.14.0 Release Gate was green, but there is no 1.14.1 CI/deployment run.
+Write access was restored and release 1.14.1 was published to main in commit
+[`71847dc04a8cd79f8083cec32924290379f42691`](https://github.com/tymo1985-debug/Language-Teacher/commit/71847dc04a8cd79f8083cec32924290379f42691).
 
-The corrected repository is saved locally as a commit and a ZIP/patch deliverable.
-Publishing requires write access to repository contents and its updated workflow.
-After access is restored: publish the reviewed commit, wait for Release Gate and
-Pages, then finish the device/browser checks listed above. A local passing gate
-alone is not evidence of deployment success.
+- [Release Gate](https://github.com/tymo1985-debug/Language-Teacher/actions/runs/33728640064): completed successfully.
+- [GitHub Pages build and deployment](https://github.com/tymo1985-debug/Language-Teacher/actions/runs/33728639306): completed successfully.
+- [Public application](https://tymo1985-debug.github.io/Language-Teacher/).
+
+The previous publication attempt was rejected with HTTP 403. This access problem
+is resolved. A new browser attempt after deployment still failed because the
+browser could not verify its administrative policy. Therefore publication is
+confirmed by GitHub Actions, while the full post-deployment interactive and
+physical-device checks listed above remain unverified. Cloud AI still requires
+a separately configured backend.
