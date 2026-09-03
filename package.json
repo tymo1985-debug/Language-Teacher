@@ -1,9 +1,10 @@
 {
   "name": "language-teacher",
-  "version": "1.14.1",
+  "version": "1.14.2",
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node scripts/build-cloud.mjs",
     "start": "node server/server.mjs",
     "test": "node --test",
     "gate": "node scripts/release-gate.mjs"
@@ -12,6 +13,7 @@
     "node": ">=18"
   },
   "devDependencies": {
+    "esbuild": "^0.25.12",
     "fake-indexeddb": "^6.2.5"
   }
 }

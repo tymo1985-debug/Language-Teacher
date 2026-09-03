@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 const source=await readFile(new URL('../sw.js',import.meta.url),'utf8');
+const currentCache=source.match(/const CACHE_NAME="([^"]+)"/)[1];
 function worker(overrides={}){
   const handlers={};
   const self={registration:{scope:'https://example.com/Language-Teacher/'},clients:{claim:async()=>{}},addEventListener:(name,fn)=>handlers[name]=fn};
@@ -11,9 +12,9 @@ function worker(overrides={}){
 }
 
 test('activation removes only previous Language Teacher caches',async()=>{
-  const removed=[];const h=worker({caches:{keys:async()=>['other-app-cache','language-teacher-shell-v28','language-teacher-shell-v29'],delete:async key=>removed.push(key)}});
+  const removed=[];const h=worker({caches:{keys:async()=>['other-app-cache','language-teacher-shell-v0',currentCache],delete:async key=>removed.push(key)}});
   let done;h.activate({waitUntil:p=>done=p});await done;
-  assert.deepEqual(removed,['language-teacher-shell-v28']);
+  assert.deepEqual(removed,['language-teacher-shell-v0']);
 });
 
 test('offline navigation and update query use the installed cached shell',async()=>{

@@ -1,4 +1,4 @@
-# Language Teacher 1.14.1
+# Language Teacher 1.14.2
 
 [Open the PWA](https://tymo1985-debug.github.io/Language-Teacher/)
 
@@ -38,7 +38,26 @@ HOST=127.0.0.1 npm start
 The runtime has no third-party production dependencies. The test suite uses
 `fake-indexeddb` to exercise actual storage transactions.
 
-## Optional cloud AI
+## Private cloud AI
+
+The cloud build packages this same PWA and its OpenAI server as one Worker.
+It is intended for a **Sites owner-only deployment**: the hosting gateway, not
+CORS, authenticates requests. Do not make this deployment public with a paid
+key. The per-instance burst limit is not a global spending cap.
+
+`npm run build` prepares the cloud bundle; `npm run gate` also checks every
+offline-shell route against the original source. Hosting configuration is in
+`.openai/hosting.json` once provisioned. Set `OPENAI_API_KEY` as a Sites secret
+and `OPENAI_MODEL` as a server runtime variable. No key is embedded in the build.
+A new profile selects cloud AI automatically when both settings exist; existing
+preferences remain respected. Health reports configuration, not successful inference.
+
+Activation is pending an OpenAI API key and a real inference check. See
+[cloud setup status](docs/CLOUD_AI_SETUP.md). GitHub Pages continues to use local
+practice. To move learning history to another origin, export a backup in Settings
+and restore it in the cloud app, then select Secure cloud AI.
+
+## Existing Node backend option
 
 Set these environment values **on the server**:
 

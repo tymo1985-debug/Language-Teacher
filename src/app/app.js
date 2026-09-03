@@ -688,7 +688,7 @@ async function bootstrap(){
     const savedAIProviderId=await getSetting("aiProviderId");
 
     try{
-      setAIProvider(savedAIProviderId??"local-demo");
+      setAIProvider(savedAIProviderId??globalThis.LANGUAGE_TEACHER_CONFIG?.defaultAIProvider??"local-demo");
     }catch{
       setAIProvider("local-demo");
     }

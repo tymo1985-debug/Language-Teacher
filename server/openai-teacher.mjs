@@ -83,9 +83,8 @@ export async function requestOpenAITeacherResponse({
 
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),timeoutMs);
-  let response;
   try{
-    response=await fetchImpl(apiUrl,{
+    const response=await fetchImpl(apiUrl,{
       method:"POST",
       headers:{
         "Authorization":`Bearer ${apiKey}`,
@@ -95,18 +94,17 @@ export async function requestOpenAITeacherResponse({
       body:JSON.stringify(buildOpenAIRequest({context,model})),
       signal:controller.signal
     });
+    if(!response.ok)throw new Error(`OpenAI request failed with status ${response.status}.`);
+    const payload=await response.json();
+    const parsed=JSON.parse(extractOutputText(payload));
+    parsed.provider="openai-proxy";
+
+    const validation=validateTeacherResponse(parsed);
+    if(!validation.valid){
+      throw new Error(`AI response failed validation: ${validation.errors.join(" ")}`);
+    }
+    return parsed;
   }finally{
     clearTimeout(timeout);
   }
-
-  if(!response.ok)throw new Error(`OpenAI request failed with status ${response.status}.`);
-  const payload=await response.json();
-  const parsed=JSON.parse(extractOutputText(payload));
-  parsed.provider="openai-proxy";
-
-  const validation=validateTeacherResponse(parsed);
-  if(!validation.valid){
-    throw new Error(`AI response failed validation: ${validation.errors.join(" ")}`);
-  }
-  return parsed;
 }

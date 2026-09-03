@@ -60,7 +60,7 @@ export function validateReleaseMetadata({versionModule,packageJson,updateJson,se
 async function walk(dir){
   const out=[];
   for(const entry of await readdir(dir,{withFileTypes:true})){
-    if(["node_modules",".git"].includes(entry.name))continue;
+    if(["node_modules",".git","dist"].includes(entry.name))continue;
     const full=path.join(dir,entry.name);
     if(entry.isDirectory())out.push(...await walk(full));else out.push(full);
   }
@@ -135,6 +135,8 @@ export async function runReleaseGate(){
   const requiredCount=await checkRequiredFiles();
   const shellCount=await checkAppShell();
   const syntaxCount=await checkSyntax();
+  run(process.execPath,["scripts/build-cloud.mjs"]);
+  run(process.execPath,["scripts/check-cloud-build.mjs"]);
   run(process.execPath,["--test"]);
   return {version:metadata.app.version,phase:metadata.app.phase,cache:metadata.cache,requiredCount,shellCount,syntaxCount};
 }
