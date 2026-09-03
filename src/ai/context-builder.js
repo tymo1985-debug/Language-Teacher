@@ -5,6 +5,7 @@ import {
   listSessions
 } from "../learning/learning-repository.js";
 import {buildReviewQueue} from "../learning/review-engine.js";
+import {getLocale} from "../i18n/i18n.js";
 
 function newest(items,count){
   return [...items]
@@ -36,6 +37,7 @@ export async function buildTeacherContext({
     contextVersion:2,
     userId:languageProfile.userId,
     languageId,
+    interfaceLanguage:getLocale(),
     languageProfile:{
       id:languageProfile.id,
       languageId,

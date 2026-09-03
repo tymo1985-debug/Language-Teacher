@@ -3,7 +3,7 @@ import {stat} from "node:fs/promises";
 import {createServer} from "node:http";
 import path from "node:path";
 import {fileURLToPath} from "node:url";
-import {requestOpenAITeacherResponse} from "./openai-teacher.mjs";
+import {isTeacherConfigured,requestCloudTeacherResponse,teacherQuotaError} from "./teacher-service.mjs";
 import {getServerBindConfig} from "./bind-config.mjs";
 
 const SERVER_DIR=path.dirname(fileURLToPath(import.meta.url));
@@ -77,20 +77,19 @@ async function handleTeacher(request,response){
     const body=await readJsonBody(request);
     if(!body?.context)return json(request,response,400,{error:"Отсутствует учебный контекст."});
 
-    const teacherResponse=await requestOpenAITeacherResponse({
+    const teacherResponse=await requestCloudTeacherResponse({
       context:body.context,
-      apiKey:process.env.OPENAI_API_KEY,
-      model:process.env.OPENAI_MODEL,
-      apiUrl:process.env.OPENAI_API_URL,
+      env:process.env,
       timeoutMs:Number(process.env.AI_REQUEST_TIMEOUT_MS)||30000
     });
     return json(request,response,200,teacherResponse);
   }catch(error){
+    if(error?.code==="AI_QUOTA_EXCEEDED")return json(request,response,429,teacherQuotaError());
     if(error?.name==="AbortError")return json(request,response,504,{error:"AI не ответил вовремя. Попробуйте ещё раз."});
     if(error?.message==="REQUEST_TOO_LARGE")return json(request,response,413,{error:"Учебный контекст слишком большой."});
     if(error instanceof SyntaxError)return json(request,response,400,{error:"Некорректный JSON-запрос."});
     if(error?.message?.includes("is not configured"))return json(request,response,503,{error:"Cloud AI ещё не настроен на сервере."});
-    console.error("Teacher proxy error:",error?.message??error);
+    console.error("Teacher proxy request failed.");
     return json(request,response,502,{error:"AI provider временно недоступен. Local practice продолжает работать."});
   }
 }
@@ -135,7 +134,7 @@ export function createLanguageTeacherServer(){
       return json(request,response,200,{
         ok:true,
         service:"language-teacher-ai",
-        configured:Boolean(process.env.OPENAI_API_KEY&&process.env.OPENAI_MODEL)
+        configured:isTeacherConfigured(process.env)
       });
     }
 

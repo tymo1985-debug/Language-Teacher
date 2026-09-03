@@ -1,4 +1,4 @@
-# Language Teacher 1.14.2
+# Language Teacher 1.14.3
 
 [Open the PWA](https://tymo1985-debug.github.io/Language-Teacher/)
 
@@ -40,19 +40,22 @@ The runtime has no third-party production dependencies. The test suite uses
 
 ## Private cloud AI
 
-The cloud build packages this same PWA and its OpenAI server as one Worker.
+The cloud build packages this same PWA and its Gemini-capable server as one Worker.
 It is intended for a **Sites owner-only deployment**: the hosting gateway, not
 CORS, authenticates requests. Do not make this deployment public with a paid
 key. The per-instance burst limit is not a global spending cap.
 
 `npm run build` prepares the cloud bundle; `npm run gate` also checks every
 offline-shell route against the original source. Hosting configuration is in
-`.openai/hosting.json` once provisioned. Set `OPENAI_API_KEY` as a Sites secret
-and `OPENAI_MODEL` as a server runtime variable. No key is embedded in the build.
-A new profile selects cloud AI automatically when both settings exist; existing
+`.openai/hosting.json` once provisioned. Set `AI_PROVIDER=gemini`, the secret
+`GEMINI_API_KEY`, and `GEMINI_MODEL=gemini-3.5-flash-lite`. Verify that the key's
+Google AI Studio project is on Free Tier with billing disabled. No key is embedded
+in the build. A new profile selects cloud AI when its configuration exists; existing
 preferences remain respected. Health reports configuration, not successful inference.
 
-Activation is pending an OpenAI API key and a real inference check. See
+Real Gemini inference passed in practice, conversation and real-life modes on a
+verified Free Tier project; explanations respect the interface language. Cloud
+deployment and its browser checks remain pending. See
 [cloud setup status](docs/CLOUD_AI_SETUP.md). GitHub Pages continues to use local
 practice. To move learning history to another origin, export a backup in Settings
 and restore it in the cloud app, then select Secure cloud AI.
@@ -61,12 +64,19 @@ and restore it in the cloud app, then select Secure cloud AI.
 
 Set these environment values **on the server**:
 
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL` — a model available to your OpenAI project
+- `AI_PROVIDER=gemini`
+- `GEMINI_API_KEY` — from a Free Tier Google AI Studio project
+- `GEMINI_MODEL=gemini-3.5-flash-lite`
 - `AI_ALLOWED_ORIGINS=https://tymo1985-debug.github.io`
 - `PORT` / `HOST` if required by your hosting provider
 
-Start the Node server with `npm start`. Its `/api/health` reports whether the
+Start with `npm start` when variables are already in the environment, or on Node
+22 use `node --env-file=.env.local server/server.mjs` for an ignored local env file.
+OpenAI is available only through an explicit `AI_PROVIDER=openai` selection and
+its corresponding `OPENAI_API_KEY` / `OPENAI_MODEL`. There is no automatic fallback
+to a paid provider. The application cannot inspect a Google project's billing tier.
+
+The server's `/api/health` reports whether the
 key and model are configured. It does not prove upstream model availability.
 Set `aiProxyBaseUrl` in `deployment-config.js` to the backend's public HTTPS
 origin, then choose **Secure cloud AI** in Settings. No key belongs in that file,

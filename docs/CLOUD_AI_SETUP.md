@@ -1,4 +1,39 @@
-# Cloud AI preparation — 1.14.2
+# Cloud AI — Gemini support, 1.14.3
+
+Google Gemini is now the default server provider. The release gate passes, and
+real requests succeeded on 2026-09-03 in practice, conversation continuation and
+real-life phrase modes. The Google AI Studio project was verified as **Free Tier
+with billing disabled** before these requests. Russian interface explanations
+and Czech learning phrases were checked against real responses.
+
+Configure `AI_PROVIDER=gemini`, `GEMINI_MODEL=gemini-3.5-flash-lite`, and the server
+secret `GEMINI_API_KEY`. Verify the actual project's Free Tier before using its
+key. The application cannot determine the billing tier from the key itself.
+Do not enable billing or link a paid Cloud Billing account.
+
+An existing OpenAI key is ignored unless `AI_PROVIDER=openai` is explicitly
+selected. Missing Gemini configuration and Gemini errors never trigger another
+provider or paid fallback. Each action makes at most one Google request.
+Google HTTP 429 produces a quota message and links to exercises without AI.
+
+Current validation: 71 tests, 94 JS/MJS syntax checks, 82 offline-shell entries,
+and 83 cloud routes. New tests cover all three Gemini teaching modes, context
+and history transfer, private keys, quota exhaustion without fallback, incomplete
+or blocked responses, response-body timeouts, and interface-language propagation.
+
+Deployed browser checks, physical microphone and mobile installation are pending.
+Reuse the existing Sites project and keep it owner-only as described below.
+
+Official references:
+- [Google billing and Free Tier](https://ai.google.dev/gemini-api/docs/billing)
+- [Model prices](https://ai.google.dev/gemini-api/docs/pricing)
+- [Structured output](https://ai.google.dev/gemini-api/docs/generate-content/structured-output)
+
+## Historical OpenAI preparation (1.14.2)
+
+The following records the previous OpenAI setup. For the current Gemini setup,
+use the settings above. OpenAI key creation has since succeeded, but a real
+OpenAI request returned exhausted prepaid credits. No funds were added.
 
 Status: implementation prepared; real OpenAI inference is **not yet activated**.
 An OpenAI project API key is still required. GitHub access does not provide that

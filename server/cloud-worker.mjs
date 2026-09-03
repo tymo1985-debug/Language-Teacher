@@ -1,4 +1,4 @@
-import {requestOpenAITeacherResponse} from "./openai-teacher.mjs";
+import {isTeacherConfigured,requestCloudTeacherResponse,teacherQuotaError} from "./teacher-service.mjs";
 
 const BODY_LIMIT=128*1024;
 const json=(status,payload)=>new Response(JSON.stringify(payload),{status,headers:{
@@ -34,7 +34,7 @@ export function createCloudWorker({assets={},fetchImpl=fetch,now=Date.now}={}){
   let requestCount=0;
   return {async fetch(request,env={}){
     const url=new URL(request.url);
-    const configured=Boolean(env.OPENAI_API_KEY&&env.OPENAI_MODEL);
+    const configured=isTeacherConfigured(env);
     if(url.pathname==="/api/health"&&request.method==="GET"){
       return json(200,{ok:true,service:"language-teacher-ai",configured});
     }
@@ -60,11 +60,12 @@ export function createCloudWorker({assets={},fetchImpl=fetch,now=Date.now}={}){
         return json(400,{error:"Отсутствует учебный контекст."});
       }
       try{
-        return json(200,await requestOpenAITeacherResponse({
-          context:body.context,apiKey:env.OPENAI_API_KEY,model:env.OPENAI_MODEL,
+        return json(200,await requestCloudTeacherResponse({
+          context:body.context,env,
           timeoutMs:25_000,fetchImpl
         }));
       }catch(error){
+        if(error?.code==="AI_QUOTA_EXCEEDED")return json(429,teacherQuotaError());
         if(error?.name==="AbortError")return json(504,{error:"AI не ответил вовремя. Попробуйте ещё раз."});
         return json(502,{error:"Облачный AI временно недоступен. Попробуйте позже или выберите локальный режим."});
       }

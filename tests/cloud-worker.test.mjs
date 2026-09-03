@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {createCloudWorker} from "../server/cloud-worker.mjs";
 
 const origin="https://teacher.example";
-const env={OPENAI_API_KEY:"server-only-test-key",OPENAI_MODEL:"test-model"};
+const env={AI_PROVIDER:"openai",OPENAI_API_KEY:"server-only-test-key",OPENAI_MODEL:"test-model"};
 const answer={schemaVersion:1,provider:"openai-proxy",kind:"teacher-response",message:"Dobrý den!",
   blocks:[],corrections:[],learningSignals:{suggestedItems:[],mistakePatterns:[]}};
 const post=(body={context:{languageId:"cs",mode:"conversation",userInput:"Ahoj"}},headers={})=>

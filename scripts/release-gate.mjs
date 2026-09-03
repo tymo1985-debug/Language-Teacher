@@ -36,7 +36,7 @@ export function validateManifest(manifest){
 
 export function validateDeploymentConfig(source){
   const errors=[];
-  if(/OPENAI_API_KEY\s*=|sk-[A-Za-z0-9_-]{20,}/.test(source))errors.push("deployment-config.js appears to contain a secret.");
+  if(/(?:OPENAI_API_KEY|GEMINI_API_KEY|GOOGLE_API_KEY)\s*[:=]|sk-[A-Za-z0-9_-]{20,}|AIza[A-Za-z0-9_-]{30,}/.test(source))errors.push("deployment-config.js appears to contain a secret.");
   if(!/aiProxyBaseUrl/.test(source))errors.push("deployment-config.js must expose aiProxyBaseUrl.");
   return {ok:errors.length===0,errors};
 }

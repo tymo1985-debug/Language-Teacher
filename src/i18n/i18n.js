@@ -3,6 +3,7 @@ let currentLocale="ru";
 
 const FOUNDATION={
 ru:{
+local_exercises:"Упражнения без AI",
 nav_today:"Сегодня",nav_practice:"Практика",nav_words:"Слова",nav_progress:"Прогресс",nav_settings:"Настройки",nav_label:"Основная навигация",
 add_language:"+ Язык",online:"Online",offline:"Offline",add_language_title:"Какой язык будем учить?",language:"Язык",choose_language:"Выберите язык",
 language_reason:"Для чего он вам нужен?",multiple_goals:"Можно выбрать несколько целей.",confidence:"Насколько уверенно вы чувствуете себя сейчас?",cancel:"Отмена",add:"Добавить язык",
@@ -22,6 +23,7 @@ settings_title:"Настройки устройства",local_hint:"Профи�
 reduce_motion:"Уменьшить анимацию",accessibility:"Настройка доступности."
 },
 en:{
+local_exercises:"Exercises without AI",
 nav_today:"Today",nav_practice:"Practice",nav_words:"Library",nav_progress:"Progress",nav_settings:"Settings",nav_label:"Main navigation",
 add_language:"+ Language",online:"Online",offline:"Offline",add_language_title:"Which language would you like to learn?",language:"Language",choose_language:"Choose a language",
 language_reason:"What do you need it for?",multiple_goals:"You can choose several goals.",confidence:"How confident do you feel right now?",cancel:"Cancel",add:"Add language",
@@ -41,6 +43,7 @@ settings_title:"Device settings",local_hint:"Language profiles and settings are 
 reduce_motion:"Reduce motion",accessibility:"Accessibility setting."
 },
 uk:{
+local_exercises:"Вправи без AI",
 nav_today:"Сьогодні",nav_practice:"Практика",nav_words:"Слова",nav_progress:"Прогрес",nav_settings:"Налаштування",nav_label:"Основна навігація",
 add_language:"+ Мова",online:"Online",offline:"Offline",add_language_title:"Яку мову будемо вивчати?",language:"Мова",choose_language:"Виберіть мову",
 language_reason:"Для чого вона вам потрібна?",multiple_goals:"Можна вибрати кілька цілей.",confidence:"Наскільки впевнено ви почуваєтеся зараз?",cancel:"Скасувати",add:"Додати мову",
